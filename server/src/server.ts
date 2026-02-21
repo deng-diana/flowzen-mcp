@@ -2,6 +2,7 @@ import { McpServer } from "skybridge/server";
 import { z } from "zod";
 import { env } from "./env.js";
 import { executeActions, fetchTasks } from "./supabase.js";
+import { callClaudeForRecommendation } from "./llm.js";
 
 const SERVER_URL = process.env.MCP_SERVER_URL ?? "http://localhost:3000";
 
@@ -293,9 +294,35 @@ const server = new McpServer(
     const hour = new Date().getHours();
     const timeCtx = getTimeContext(hour);
     const effectiveMood: Mood = mood ?? "okay";
-    const recommendation = getRecommendation(tasks as Task[], effectiveMood, timeCtx);
-    const reason = getReason(effectiveMood, timeCtx, recommendation);
-    const reward = getReward(effectiveMood, timeCtx);
+
+    let recommendation = getRecommendation(tasks as Task[], effectiveMood, timeCtx);
+    let reason = getReason(effectiveMood, timeCtx, recommendation);
+    let reward = getReward(effectiveMood, timeCtx);
+    let focusTips: string[] = [];
+
+    if (env.ANTHROPIC_API_KEY) {
+      const now = new Date();
+      const llmResult = await callClaudeForRecommendation({
+        currentTime: `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`,
+        timeWindow: timeCtx.label,
+        cognitiveState: timeCtx.cognitiveState,
+        mood: effectiveMood,
+        tasks: tasks.map((t) => ({
+          id: t.id,
+          title: (t as Task).title,
+          priority: (t as Task).priority,
+          dueDate: (t as Task).dueDate,
+        })),
+      });
+      if (llmResult) {
+        recommendation = llmResult.recommendedTaskId
+          ? (tasks.find((t) => t.id === llmResult.recommendedTaskId) as Task ?? null)
+          : null;
+        reason = llmResult.reason;
+        reward = { emoji: llmResult.rewardEmoji, text: llmResult.reward };
+        focusTips = llmResult.focusTips;
+      }
+    }
 
     const active = tasks.filter((t) => !t.completed).length;
     const done = tasks.filter((t) => t.completed).length;
@@ -310,6 +337,7 @@ const server = new McpServer(
         recommendation,
         reason,
         reward,
+        focusTips,
         timeContext: timeCtx.label,
       },
       content: [

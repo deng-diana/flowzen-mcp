@@ -19,6 +19,7 @@ interface FlowzenOutput {
   recommendation: Task | null;
   reason: string;
   reward: { emoji: string; text: string };
+  focusTips?: string[];
   timeContext: string;
 }
 
@@ -31,6 +32,7 @@ function ManageTasks() {
   const [mood, setMood] = useState<Mood>("okay");
   const [widgetState, setWidgetState] = useWidgetState<{ tasks: Task[] }>();
   const [flowzenData, setFlowzenData] = useState<Omit<FlowzenOutput, "tasks"> | null>(null);
+  const [focusTips, setFocusTips] = useState<string[]>([]);
   const [reasonExpanded, setReasonExpanded] = useState(false);
   const mutationCounter = useRef(0);
 
@@ -49,6 +51,7 @@ function ManageTasks() {
           reward: out.reward,
           timeContext: out.timeContext,
         });
+        setFocusTips(out.focusTips ?? []);
       }
     }
   }, [output]);
@@ -74,6 +77,7 @@ function ManageTasks() {
           reward: sc.reward,
           timeContext: sc.timeContext,
         });
+        setFocusTips(sc.focusTips ?? []);
       }
     }
   };
@@ -225,6 +229,18 @@ function ManageTasks() {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Focus Tips */}
+      {focusTips.length > 0 && recommendation && (
+        <div className="focus-tips-section">
+          {focusTips.map((tip, i) => (
+            <div key={i} className="focus-tip">
+              <span className="focus-tip-icon">💡</span>
+              <span className="focus-tip-text">{tip}</span>
+            </div>
+          ))}
         </div>
       )}
 

@@ -27,10 +27,12 @@ export const env = createEnv({
     CLERK_SECRET_KEY: z.string().min(1),
     CLERK_PUBLISHABLE_KEY: z.string().min(1),
     MCP_SERVER_URL: z.string().url().optional(),
+    ANTHROPIC_API_KEY: z.string().optional(),
   },
   runtimeEnv: {
     ...process.env,
     CLERK_PUBLISHABLE_KEY: clerkPublishableKey,
     MCP_SERVER_URL: process.env.MCP_SERVER_URL,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
   },
 });
