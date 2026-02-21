@@ -47,11 +47,10 @@ interface Task {
   priority: string;
   dueDate: string | null;
   createdAt: string;
-  status?: string;
 }
 
 function getRecommendation(tasks: Task[], mood: Mood, timeCtx: TimeContext): Task | null {
-  const activeTasks = tasks.filter((t) => t.status !== "done" && !t.completed);
+  const activeTasks = tasks.filter((t) => !t.completed);
   if (activeTasks.length === 0) return null;
 
   const priorityOrder: Record<string, number> = { high: 3, medium: 2, low: 1 };
@@ -194,15 +193,14 @@ function getReward(mood: Mood, timeCtx: TimeContext): { emoji: string; text: str
 }
 
 const ActionSchema = z.object({
-  type: z.enum(["add", "delete", "toggle", "move"]),
+  type: z.enum(["add", "delete", "toggle"]),
   title: z.string().optional().describe("Task title (required for add)"),
   priority: z
     .enum(["low", "medium", "high"])
     .optional()
     .describe("Task priority"),
   dueDate: z.string().optional().describe("Due date (ISO string)"),
-  taskId: z.string().optional().describe("Task ID (required for delete/toggle/move)"),
-  status: z.enum(["todo", "in_progress", "done"]).optional().describe("Target status (required for move)"),
+  taskId: z.string().optional().describe("Task ID (required for delete/toggle)"),
 });
 
 const server = new McpServer(
@@ -223,7 +221,7 @@ const server = new McpServer(
   },
   {
     description:
-      "Call with no arguments to display your Flowzen task board with a personalised recommendation. Pass `mood` (great/okay/tired) to tailor the recommendation to your emotional state. Pass an `actions` array to add, move, or delete tasks.",
+      "Call with no arguments to display your Flowzen task board with a personalised recommendation. Pass `mood` (great/okay/tired) to tailor the recommendation to your emotional state. Pass an `actions` array to add, toggle, or delete tasks.",
     inputSchema: {
       actions: z
         .array(ActionSchema)
@@ -299,12 +297,11 @@ const server = new McpServer(
     const reason = getReason(effectiveMood, timeCtx, recommendation);
     const reward = getReward(effectiveMood, timeCtx);
 
-    const todo = tasks.filter((t) => t.status === "todo").length;
-    const inProgress = tasks.filter((t) => t.status === "in_progress").length;
-    const done = tasks.filter((t) => t.status === "done").length;
+    const active = tasks.filter((t) => !t.completed).length;
+    const done = tasks.filter((t) => t.completed).length;
 
     const summaryText = recommendation
-      ? `Flowzen recommends: "${recommendation.title}" (${recommendation.priority} priority). ${todo} todo, ${inProgress} in progress, ${done} done. Time window: ${timeCtx.label}. Mood: ${effectiveMood}.`
+      ? `Flowzen recommends: "${recommendation.title}" (${recommendation.priority} priority). ${active} active, ${done} done. Time window: ${timeCtx.label}. Mood: ${effectiveMood}.`
       : `All tasks complete! ${done} done. Time window: ${timeCtx.label}. Mood: ${effectiveMood}.`;
 
     return {

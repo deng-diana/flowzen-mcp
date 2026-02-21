@@ -2,7 +2,7 @@ import "@/index.css";
 import { useEffect, useRef, useState } from "react";
 import { mountWidget, useLayout, useWidgetState } from "skybridge/web";
 import { useToolInfo, useCallTool } from "../helpers";
-import { type Task, type Status, getTaskStatus } from "../components/types";
+import { type Task } from "../components/types";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { AddTaskForm } from "../components/AddTaskForm";
 
@@ -58,8 +58,8 @@ function ManageTasks() {
   }
 
   const tasks = widgetState.tasks;
-  const todoCount = tasks.filter((t) => getTaskStatus(t) === "todo").length;
-  const doneCount = tasks.filter((t) => getTaskStatus(t) === "done").length;
+  const todoCount = tasks.filter((t) => !t.completed).length;
+  const doneCount = tasks.filter((t) => t.completed).length;
 
   const syncWithServer = async (args: Parameters<typeof callToolAsync>[0]) => {
     const id = ++mutationCounter.current;
@@ -93,7 +93,6 @@ function ManageTasks() {
           priority,
           dueDate,
           createdAt: new Date().toISOString(),
-          status: "todo",
         },
         ...safeTasks(prev),
       ],
@@ -102,16 +101,12 @@ function ManageTasks() {
   };
 
   const handleToggle = (taskId: string) => {
-    const task = tasks.find((t) => t.id === taskId);
-    if (!task) return;
-    const currentStatus = getTaskStatus(task);
-    const newStatus: Status = currentStatus === "done" ? "todo" : "done";
     setWidgetState((prev) => ({
       tasks: safeTasks(prev).map((t) =>
-        t.id === taskId ? { ...t, status: newStatus, completed: newStatus === "done" } : t
+        t.id === taskId ? { ...t, completed: !t.completed } : t
       ),
     }));
-    syncWithServer({ actions: [{ type: "move", taskId, status: newStatus }], mood });
+    syncWithServer({ actions: [{ type: "toggle", taskId }], mood });
   };
 
   const handleDelete = (taskId: string) => {
@@ -126,8 +121,8 @@ function ManageTasks() {
   const reward = flowzenData?.reward;
   const timeContext = flowzenData?.timeContext ?? "";
 
-  const activeTasks = tasks.filter((t) => getTaskStatus(t) !== "done");
-  const doneTasks = tasks.filter((t) => getTaskStatus(t) === "done");
+  const activeTasks = tasks.filter((t) => !t.completed);
+  const doneTasks = tasks.filter((t) => t.completed);
 
   const PRIORITY_COLORS: Record<string, string> = {
     high: "#ef4444",

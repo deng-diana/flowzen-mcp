@@ -7,12 +7,11 @@ export const supabase = createClient(
 );
 
 interface Action {
-  type: "add" | "delete" | "toggle" | "move";
+  type: "add" | "delete" | "toggle";
   title?: string;
   priority?: "low" | "medium" | "high";
   dueDate?: string;
   taskId?: string;
-  status?: "todo" | "in_progress" | "done";
 }
 
 export async function executeActions(userId: string, actions: Action[]) {
@@ -36,17 +35,6 @@ export async function executeActions(userId: string, actions: Action[]) {
             p_user_id: userId,
           });
         }
-        case "move": {
-          if (!action.taskId || !action.status) return;
-          return supabase
-            .from("tasks")
-            .update({
-              status: action.status,
-              completed: action.status === "done",
-            })
-            .eq("id", action.taskId)
-            .eq("user_id", userId);
-        }
         case "delete": {
           if (!action.taskId) return;
           return supabase
@@ -63,7 +51,7 @@ export async function executeActions(userId: string, actions: Action[]) {
 export async function fetchTasks(userId: string) {
   const { data: tasks, error } = await supabase
     .from("tasks")
-    .select("id, title, completed, priority, due_date, created_at, status")
+    .select("id, title, completed, priority, due_date, created_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
@@ -78,7 +66,6 @@ export async function fetchTasks(userId: string) {
     priority: t.priority,
     dueDate: t.due_date,
     createdAt: t.created_at,
-    status: t.status || "todo",
   }));
 
   return { tasks: formattedTasks, error: null };
