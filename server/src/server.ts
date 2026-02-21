@@ -3,6 +3,7 @@ import { z } from "zod";
 import { env } from "./env.js";
 import { executeActions, fetchTasks } from "./supabase.js";
 import { callClaudeForRecommendation } from "./llm.js";
+import { fetchUserInsights, logRecommendation, recordCompletion } from "./user-insights.js";
 
 const SERVER_URL = process.env.MCP_SERVER_URL ?? "http://localhost:3000";
 
@@ -50,8 +51,8 @@ interface Task {
   createdAt: string;
 }
 
-function getRecommendation(tasks: Task[], mood: Mood, timeCtx: TimeContext): Task | null {
-  const activeTasks = tasks.filter((t) => !t.completed);
+function getRecommendation(tasks: Task[], mood: Mood, timeCtx: TimeContext, excludedTaskIds?: string[]): Task | null {
+  const activeTasks = tasks.filter((t) => !t.completed && !excludedTaskIds?.includes(t.id));
   if (activeTasks.length === 0) return null;
 
   const priorityOrder: Record<string, number> = { high: 3, medium: 2, low: 1 };
@@ -232,6 +233,10 @@ const server = new McpServer(
         .enum(["great", "okay", "tired"])
         .optional()
         .describe("Your current emotional/energy state — affects which task is recommended"),
+      excludedTaskIds: z
+        .array(z.string())
+        .optional()
+        .describe("Task IDs to exclude from recommendation — used for 'try another' feature"),
     },
     annotations: {
       readOnlyHint: false,
@@ -239,7 +244,7 @@ const server = new McpServer(
       destructiveHint: false,
     },
   },
-  async ({ actions, mood }, extra) => {
+  async ({ actions, mood, excludedTaskIds }, extra) => {
     const userId = ((extra.authInfo?.extra as any)?.userId as string | undefined)
       ?? (process.env.NODE_ENV !== "production" ? "dev-user" : undefined);
 
@@ -261,7 +266,31 @@ const server = new McpServer(
       await executeActions(userId, actions);
     }
 
-    let { tasks, error } = await fetchTasks(userId);
+    const [tasksResult, userInsights] = await Promise.all([
+      fetchTasks(userId),
+      fetchUserInsights(userId),
+    ]);
+    let { tasks, error } = tasksResult;
+
+    // Record completions for toggled tasks (fire-and-forget)
+    if (actions) {
+      const hour0 = new Date().getHours();
+      const timeCtx0 = getTimeContext(hour0);
+      for (const action of actions) {
+        if (action.type === "toggle" && action.taskId) {
+          const toggled = tasks.find((t) => t.id === action.taskId);
+          if (toggled && (toggled as Task).completed) {
+            recordCompletion({
+              userId,
+              taskId: action.taskId,
+              mood: mood ?? "okay",
+              timeWindow: timeCtx0.window,
+              wasRecommended: false,
+            });
+          }
+        }
+      }
+    }
 
     // Seed default tasks for new users so the recommendation engine has data to work with
     if (!error && tasks.length === 0) {
@@ -295,7 +324,7 @@ const server = new McpServer(
     const timeCtx = getTimeContext(hour);
     const effectiveMood: Mood = mood ?? "okay";
 
-    let recommendation = getRecommendation(tasks as Task[], effectiveMood, timeCtx);
+    let recommendation = getRecommendation(tasks as Task[], effectiveMood, timeCtx, excludedTaskIds);
     let reason = getReason(effectiveMood, timeCtx, recommendation);
     let reward = getReward(effectiveMood, timeCtx);
     let focusTips: string[] = [];
@@ -313,6 +342,8 @@ const server = new McpServer(
           priority: (t as Task).priority,
           dueDate: (t as Task).dueDate,
         })),
+        userInsights,
+        excludedTaskIds,
       });
       if (llmResult) {
         recommendation = llmResult.recommendedTaskId
@@ -323,6 +354,15 @@ const server = new McpServer(
         focusTips = llmResult.focusTips;
       }
     }
+
+    // Log recommendation (fire-and-forget)
+    logRecommendation({
+      userId,
+      recommendedTaskId: recommendation?.id ?? null,
+      mood: effectiveMood,
+      timeWindow: timeCtx.window,
+      reasonText: reason,
+    });
 
     const active = tasks.filter((t) => !t.completed).length;
     const done = tasks.filter((t) => t.completed).length;

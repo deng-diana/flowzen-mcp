@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { env } from "./env.js";
+import type { UserInsights } from "./user-insights.js";
 
 const SYSTEM_PROMPT = `You are Flowzen, a cognitive compass grounded in neuroscience, positive psychology, and counseling psychology.
 
@@ -34,6 +35,8 @@ interface LLMContext {
   cognitiveState: string;
   mood: string;
   tasks: TaskContext[];
+  userInsights?: UserInsights;
+  excludedTaskIds?: string[];
 }
 
 export interface LLMRecommendation {
@@ -52,13 +55,27 @@ export async function callClaudeForRecommendation(
 
   const client = new Anthropic({ apiKey });
 
+  const insightLines: string[] = [];
+  if (context.userInsights && context.userInsights.completionCount > 0) {
+    insightLines.push(`- User history: completed ${context.userInsights.completionCount} tasks`);
+    if (context.userInsights.bestTimeWindows.length > 0) {
+      insightLines.push(`- Most focused during: ${context.userInsights.bestTimeWindows.join(", ")}`);
+    }
+    if (context.userInsights.recentCompletions.length > 0) {
+      insightLines.push(`- Recent wins: ${context.userInsights.recentCompletions.join(", ")}`);
+    }
+  }
+  const excludeNote = context.excludedTaskIds && context.excludedTaskIds.length > 0
+    ? `\n- Do NOT recommend tasks with these IDs: ${context.excludedTaskIds.join(", ")}`
+    : "";
+
   const userPrompt = `Given:
 - Time: ${context.currentTime} (${context.timeWindow}, ${context.cognitiveState})
 - Mood: ${context.mood}
-- Tasks: ${JSON.stringify(context.tasks, null, 2)}
+- Tasks: ${JSON.stringify(context.tasks, null, 2)}${insightLines.length > 0 ? "\n" + insightLines.join("\n") : ""}${excludeNote}
 
 Your job:
-1. Recommend ONE task from the list the user should do right now (or null if mood is tired and all tasks are high priority).
+1. Recommend ONE task from the list the user should do right now (or null if mood is tired and all tasks are high priority).${context.excludedTaskIds?.length ? " Avoid excluded task IDs." : ""}
 2. Explain WHY in 2-3 warm sentences — reference neuroscience or positive psychology.
 3. Add ONE brief wellbeing reward nudge with an emoji.
 4. Provide 1-2 focus_tips: practical, warm suggestions (e.g. phone aside, lo-fi music, 25-min timer).

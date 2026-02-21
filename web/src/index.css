@@ -336,6 +336,28 @@ body {
   letter-spacing: 0.005em;
 }
 
+/* ── Try Another Button ── */
+.try-another-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 500;
+  opacity: 0.55;
+  letter-spacing: 0.01em;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.3rem;
+  transition: opacity 0.15s;
+}
+
+.try-another-btn:hover {
+  opacity: 0.9;
+}
+
+.light .try-another-btn { color: #3d200a; }
+.dark .try-another-btn  { color: #faeade; }
+
 /* ── Focus Tips Section ── */
 .focus-tips-section {
   display: flex;

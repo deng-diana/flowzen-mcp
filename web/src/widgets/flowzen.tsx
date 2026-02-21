@@ -34,6 +34,7 @@ function ManageTasks() {
   const [flowzenData, setFlowzenData] = useState<Omit<FlowzenOutput, "tasks"> | null>(null);
   const [focusTips, setFocusTips] = useState<string[]>([]);
   const [reasonExpanded, setReasonExpanded] = useState(false);
+  const [excludedIds, setExcludedIds] = useState<string[]>([]);
   const mutationCounter = useRef(0);
 
   const safeTasks = (prev: { tasks?: Task[] } | null | undefined): Task[] =>
@@ -84,7 +85,15 @@ function ManageTasks() {
 
   const handleMoodChange = (newMood: Mood) => {
     setMood(newMood);
+    setExcludedIds([]);
     syncWithServer({ mood: newMood });
+  };
+
+  const handleTryAnother = () => {
+    if (!recommendation) return;
+    const newExcluded = [...excludedIds, recommendation.id];
+    setExcludedIds(newExcluded);
+    syncWithServer({ excludedTaskIds: newExcluded, mood });
   };
 
   const handleAdd = (title: string, priority: "low" | "medium" | "high", dueDate: string | null) => {
@@ -177,6 +186,9 @@ function ManageTasks() {
           <div className="rec-header">
             <span className="rec-icon">⚡</span>
             <span className="rec-title">DO THIS NOW</span>
+            <button className="try-another-btn" onClick={handleTryAnother}>
+              Try another →
+            </button>
           </div>
           <div className="rec-card">
             <div className="rec-task-title">{recommendation.title}</div>
