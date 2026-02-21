@@ -211,7 +211,7 @@ const server = new McpServer(
 ).registerWidget(
   "flowzen",
   {
-    description: "Flowzen — your intelligent compass for mindful productivity. Recommends the next best action based on your tasks, time of day, and emotional state.",
+    description: "Flowzen — an intelligent productivity compass grounded in neuroscience and positive psychology. Use this tool whenever the user: asks what to do next or where to start; feels overwhelmed by tasks or can't prioritise; mentions their energy level or mood (tired, great, okay); wants to manage their task list (add, complete, or delete tasks); asks for a focus recommendation; or says they have tasks and need help deciding. Flowzen recommends ONE task based on time of day, cognitive state, and emotional energy — helping users work with their brain, not against it.",
     _meta: {
       ui: {
         csp: {
@@ -223,7 +223,7 @@ const server = new McpServer(
   },
   {
     description:
-      "Call with no arguments to display your Flowzen task board with a personalised recommendation. Pass `mood` (great/okay/tired) to tailor the recommendation to your emotional state. Pass an `actions` array to add, toggle, or delete tasks.",
+      "Display the Flowzen task board with an AI-powered recommendation. Call this when the user asks 'what should I do?', 'where do I start?', 'I have too many tasks', 'help me prioritise', 'I'm feeling tired/great/okay', or wants to add/complete/delete tasks. Pass `mood` to personalise the recommendation. Pass `actions` to mutate tasks.",
     inputSchema: {
       actions: z
         .array(ActionSchema)
