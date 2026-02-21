@@ -1,20 +1,24 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
 
 interface AddTaskFormProps {
   onAdd: (title: string, priority: "low" | "medium" | "high", dueDate: string | null) => void;
 }
 
+const PRIORITIES = [
+  { value: "high" as const, label: "High", color: "#ef4444" },
+  { value: "medium" as const, label: "Med", color: "#f59e0b" },
+  { value: "low" as const, label: "Low", color: "#22c55e" },
+];
+
 export function AddTaskForm({ onAdd }: AddTaskFormProps) {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
-  const [dueDate, setDueDate] = useState("");
 
   const handleSubmit = () => {
     if (!title.trim()) return;
-    onAdd(title.trim(), priority, dueDate || null);
+    onAdd(title.trim(), priority, null);
     setTitle("");
-    setDueDate("");
+    setPriority("medium");
   };
 
   return (
@@ -22,31 +26,32 @@ export function AddTaskForm({ onAdd }: AddTaskFormProps) {
       <input
         type="text"
         className="add-input"
-        placeholder="Add a new task..."
+        placeholder="What will you do next?"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+        autoComplete="off"
       />
-      <div className="add-options">
-        <select
-          className="priority-select"
-          value={priority}
-          onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high")}
-        >
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
-        <input
-          type="date"
-          className="date-input"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-        />
-        <button className="add-btn" onClick={handleSubmit} disabled={!title.trim()}>
-          <Plus size={14} /> Add
-        </button>
-      </div>
+      {title.trim() && (
+        <div className="add-row">
+          <div className="priority-chips">
+            {PRIORITIES.map((p) => (
+              <button
+                key={p.value}
+                className={`priority-chip ${priority === p.value ? "active" : ""}`}
+                style={priority === p.value ? { color: p.color, borderColor: p.color + "55", background: p.color + "11" } : {}}
+                onClick={() => setPriority(p.value)}
+                type="button"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <button className="add-btn" onClick={handleSubmit}>
+            Add ↵
+          </button>
+        </div>
+      )}
     </div>
   );
 }

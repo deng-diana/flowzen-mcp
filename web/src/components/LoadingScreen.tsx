@@ -5,8 +5,8 @@ export function LoadingScreen({ isDark }: { isDark: boolean }) {
         <div className="loader-ring">
           <div className="loader-ring-inner" />
         </div>
-        <div className="loading-brand">Claude Hack Night</div>
-        <div className="loading-sub">Loading your tasks...</div>
+        <div className="loading-brand">🌊 Flowzen</div>
+        <div className="loading-tagline">Finding your next best action...</div>
       </div>
     </div>
   );
