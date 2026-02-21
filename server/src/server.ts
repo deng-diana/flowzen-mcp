@@ -241,11 +241,8 @@ const server = new McpServer(
     },
   },
   async ({ actions, mood }, extra) => {
-    console.log("[DEBUG] authInfo:", JSON.stringify(extra.authInfo));
     const userId = ((extra.authInfo?.extra as any)?.userId as string | undefined)
       ?? (process.env.NODE_ENV !== "production" ? "dev-user" : undefined);
-
-    console.log("[DEBUG] userId:", userId);
 
     if (!userId) {
       return {
