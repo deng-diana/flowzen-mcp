@@ -25,21 +25,28 @@ if (nodeEnv === "production") {
 app.use(cors());
 
 // Self-contained OAuth server — required by Claude.ai (MCP 2025-06-18 spec)
-// Our server acts as both resource server and authorization server.
-const SERVER_URL = process.env.MCP_SERVER_URL ?? "https://flowzen-mcp-dfdb5406.alpic.live";
+// Derives base URL from the request Host header so it works with any tunnel/domain.
+function getBaseUrl(req: express.Request): string {
+  if (process.env.MCP_SERVER_URL) return process.env.MCP_SERVER_URL;
+  const proto = req.headers["x-forwarded-proto"] || req.protocol || "https";
+  const host = req.headers["x-forwarded-host"] || req.headers.host || "localhost:3000";
+  return `${proto}://${host}`;
+}
 
-app.get("/.well-known/oauth-protected-resource", (_req, res) => {
+app.get("/.well-known/oauth-protected-resource", (req, res) => {
+  const base = getBaseUrl(req);
   res.json({
-    resource: SERVER_URL,
-    authorization_servers: [SERVER_URL],
+    resource: base,
+    authorization_servers: [base],
   });
 });
 
-app.get("/.well-known/oauth-authorization-server", (_req, res) => {
+app.get("/.well-known/oauth-authorization-server", (req, res) => {
+  const base = getBaseUrl(req);
   res.json({
-    issuer: SERVER_URL,
-    authorization_endpoint: `${SERVER_URL}/oauth/authorize`,
-    token_endpoint: `${SERVER_URL}/oauth/token`,
+    issuer: base,
+    authorization_endpoint: `${base}/oauth/authorize`,
+    token_endpoint: `${base}/oauth/token`,
     response_types_supported: ["code"],
     grant_types_supported: ["authorization_code"],
     code_challenge_methods_supported: ["S256"],
