@@ -7,10 +7,10 @@ import { LoadingScreen } from "../components/LoadingScreen";
 
 type Mood = "great" | "okay" | "tired";
 
-const MOOD_OPTIONS: { value: Mood; emoji: string; label: string }[] = [
-  { value: "great", emoji: "😊", label: "Great" },
-  { value: "okay", emoji: "😐", label: "Okay" },
-  { value: "tired", emoji: "😮‍💨", label: "Tired" },
+const MOOD_OPTIONS: { value: Mood; emoji: string; label: string; sub: string }[] = [
+  { value: "great", emoji: "🔥", label: "On fire",    sub: "Ready to crush it" },
+  { value: "okay",  emoji: "🙂", label: "Getting by", sub: "Steady, not spectacular" },
+  { value: "tired", emoji: "🌿", label: "Low energy", sub: "Need gentle wins" },
 ];
 
 interface FlowzenOutput {
@@ -314,6 +314,7 @@ function ManageTasks() {
             >
               <span className="mood-emoji">{m.emoji}</span>
               <span className="mood-label">{m.label}</span>
+              <span className="mood-sub">{m.sub}</span>
             </button>
           ))}
         </div>
@@ -475,7 +476,23 @@ function ManageTasks() {
           <div className="flowzen-empty-state">
             <div className="empty-state-icon">🌊</div>
             <div className="empty-state-heading">What's on your mind today?</div>
-            <div className="empty-state-sub">Your first task takes 5 seconds.</div>
+            <div className="empty-state-sub">First — how are you feeling right now?</div>
+
+            {/* Mood picker inside empty state */}
+            <div className="empty-mood-picker">
+              {MOOD_OPTIONS.map((m) => (
+                <button
+                  key={m.value}
+                  className={`empty-mood-btn ${mood === m.value ? "active" : ""}`}
+                  onClick={() => handleMoodChange(m.value)}
+                  aria-pressed={mood === m.value}
+                >
+                  <span className="empty-mood-emoji">{m.emoji}</span>
+                  <span className="empty-mood-label">{m.label}</span>
+                  <span className="empty-mood-sub">{m.sub}</span>
+                </button>
+              ))}
+            </div>
 
             {/* Primary CTA — inline add */}
             <button className="empty-cta-btn" onClick={openAddForm}>
