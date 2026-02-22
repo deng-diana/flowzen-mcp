@@ -1,66 +1,72 @@
-# Claude Hack Night - Task Manager
+# Flowzen
 
-A task management app built with [Skybridge](https://docs.skybridge.tech), featuring a kanban board with drag-and-drop, status management, and real-time sync via Supabase.
+**Work with your brain. Not against it.**
 
-**Try it now in Claude:** add `https://task-manager.alpic.live/mcp` as a remote MCP server in your Claude settings. Requires a Pro, Team, Max, or Enterprise account.
+Flowzen is an MCP app inside Claude. It knows your tasks, the time, and how you're feeling — and gives you one clear answer: *do this, right now. With the science behind why.*
 
-## Hack Night Theme
+> *Todoist gives you a list. Flowzen gives you an answer.*
 
-**Build an app that solves an everyday "at work" issue.**
+**Try it now in Claude:** add `https://flowzen-mcp-dfdb5406.alpic.live/mcp` as a remote MCP server in your Claude settings. Requires a Pro, Team, Max, or Enterprise account.
 
-Use this repo as a starting point and build your own MCP app. Here are some ideas to get you started:
+---
 
-- 🔖 **Bookmark Brain** — Save links with your own annotations, retrieve them later by describing what you vaguely remember
-- ⏰ **Deadline Radar** — Store upcoming deadlines with context, ask "what's due this week?"
-- 👋 **Learn Your Teammates** — For newcomers in a company, uses the model to play a "Time's Up" game of who's who
-- 💡 **Pitch Pile** — Dump 'someday' ideas, user feedback, emails, and call notes that shouldn't clutter the roadmap but need to be searchable. Like, aggregate, and sort
-- 🔤 **Acronym Atlas** — A repository for company-specific jargon and internal project codenames that confuse every new hire
-- 📚 **Learning Ledger** — A DB of posts or articles you want to read. Make summaries, find patterns, and quiz yourself
-- 🍕 **Rate Your Nearby Restaurants** — Rate places around the office and get suggestions for where to eat today
+## The Problem
 
-## Prerequisites
+Every day you open your task list, stare at it, and close it.
 
-### Node.js (v24.13+)
+That's not procrastination. That's decision fatigue — and it's the reason your most important work stays undone.
 
-- macOS: `brew install node`
-- Linux / other: [nodejs.org/en/download](https://nodejs.org/en/download)
+Your brain has energy rhythms: peaks, troughs, recovery windows. Every other productivity tool ignores this. They hand you a list and leave you to figure out the rest.
 
-### pnpm
+Flowzen closes that gap.
 
-[pnpm.io/installation](https://pnpm.io/installation)
+---
 
-```bash
-npm install -g pnpm
-```
+## What Flowzen Does
 
-### Supabase CLI
+Tell Flowzen what you need to do and how you're feeling. It gives you **one answer** — not a sorted list, not a priority matrix — one task to do right now, with a reason rooted in neuroscience.
 
-- macOS: `brew install supabase/tap/supabase`
-- Linux / other: [supabase.com/docs/guides/cli/getting-started](https://supabase.com/docs/guides/cli/getting-started)
+- **10am, energised?** → *Your cortisol is peaking. This is your sharpest window. Use it on your hardest task.*
+- **2pm, crashing?** → *This is biology, not weakness. Light tasks only — your second peak hits around 3pm.*
+- **Just finished something?** → *You've earned recovery. This is how sustained performance actually works.*
 
-### Supabase Project
+---
 
-Create a project at [supabase.com/dashboard](https://supabase.com/dashboard). You'll need:
+## Features
 
-- **Project URL** (`SUPABASE_URL`)
-- **Service Role Key** (`SUPABASE_SERVICE_ROLE_KEY`) — found in Settings > API
+- **Smart task recommendation** — one task, matched to your energy state and time of day
+- **Neuroscience reasoning** — warm, human rationale grounded in circadian rhythm research
+- **Full task management** — add, complete, delete tasks via chat or widget
+- **Energy state selector** — four states with time-aware defaults
+- **Recovery nudges** — rest suggestions after completion
+- **Conversational capture** — mention tasks naturally in Claude chat; Flowzen captures them
 
-### Clerk Project
+---
 
-Create a project at [clerk.com/dashboard](https://clerk.com/dashboard). You'll need:
+## Tech Stack
 
-- **Secret Key** (`CLERK_SECRET_KEY`)
-- **Publishable Key** (`CLERK_PUBLISHABLE_KEY`)
+| Layer | Technology |
+|-------|-----------|
+| Framework | [Skybridge](https://docs.skybridge.tech) MCP app |
+| Backend | Node.js / TypeScript |
+| Frontend | React widget |
+| Database | Supabase (Postgres + RLS) |
+| Auth | Clerk (Google OAuth) |
+| Hosting | Alpic |
 
-### Claude Code (optional, for AI-assisted development)
+---
 
-[docs.anthropic.com/en/docs/claude-code/overview](https://docs.anthropic.com/en/docs/claude-code/overview)
+## Local Development
 
-```bash
-npm install -g @anthropic-ai/claude-code
-```
+### Prerequisites
 
-## Setup
+- Node.js v24.13+
+- pnpm — `npm install -g pnpm`
+- Supabase CLI — `brew install supabase/tap/supabase`
+- Supabase project at [supabase.com/dashboard](https://supabase.com/dashboard)
+- Clerk project at [clerk.com/dashboard](https://clerk.com/dashboard)
+
+### Setup
 
 **1. Install dependencies**
 
@@ -83,14 +89,12 @@ CLERK_SECRET_KEY=sk_test_xxxxx
 CLERK_PUBLISHABLE_KEY=pk_test_xxxxx
 ```
 
-**3. Link your Supabase project and push migrations**
+**3. Link Supabase and push migrations**
 
 ```bash
 supabase link
 supabase db push
 ```
-
-This creates the `tasks` table and the `toggle_task` RPC function.
 
 **4. Start the dev server**
 
@@ -98,51 +102,101 @@ This creates the `tasks` table and the `toggle_task` RPC function.
 pnpm dev
 ```
 
-The server runs at `http://localhost:3000`. For testing, we recommend using the Skybridge devtools available at [http://localhost:3000](http://localhost:3000) (no `/mcp` suffix).
+Skybridge devtools available at `http://localhost:3000`.
 
-## Connecting to Claude
-
-When you're ready to test with Claude, tunnel your local server with [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) to expose the MCP endpoint at `/mcp`:
+**5. Connect to Claude (optional)**
 
 ```bash
 cloudflared tunnel --url http://localhost:3000
 ```
 
-Then add your tunnel URL with `/mcp` appended (e.g. `https://xxx.trycloudflare.com/mcp`) as a remote MCP server in Claude settings.
+Add `https://<tunnel>.trycloudflare.com/mcp` as a remote MCP server in Claude settings.
+
+---
+
+## Project Structure
+
+```
+server/src/
+  index.ts        ← Express app setup (do not modify)
+  middleware.ts   ← Clerk auth wiring (do not modify)
+  supabase.ts     ← DB operations (do not modify)
+  server.ts       ← MCP tool, recommendation engine, neuroscience logic
+
+web/src/
+  widgets/
+    flowzen.tsx   ← Main widget UI
+  index.css       ← All styles (no Tailwind, no CSS modules)
+  helpers.ts      ← Skybridge hooks
+  components/     ← Types, AddTaskForm, LoadingScreen
+
+supabase/
+  migrations/     ← Database schema migrations
+```
+
+---
+
+## Database Schema
+
+`tasks` table:
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | Primary key |
+| `user_id` | text | Clerk user ID |
+| `title` | text | Task name |
+| `priority` | text | `"low"` \| `"medium"` \| `"high"` |
+| `status` | text | `"todo"` \| `"in_progress"` \| `"done"` |
+| `completed` | bool | Completion flag |
+| `due_date` | date | Optional |
+| `created_at` | timestamptz | Auto-set |
+
+RLS is enabled. All queries use the service role key filtered by `user_id`.
+
+---
 
 ## Supabase Commands
 
 ```bash
-# Link your local project to a remote Supabase project (required once)
-supabase link
-
-# Push local migrations to the remote database
-supabase db push
-
-# Reset the remote database (drops all data, re-applies migrations)
-supabase db reset --linked
-
-# Create a new migration file
-supabase migration new <migration_name>
-
-# Check migration status
-supabase migration list
+supabase link                    # Link to remote project (once)
+supabase db push                 # Apply migrations to remote DB
+supabase db reset --linked       # Reset remote DB (destructive)
+supabase migration new <name>    # Create a new migration
 ```
 
-Migrations live in `supabase/migrations/`. After editing or adding a migration file, run `supabase db push` to apply it to your remote database.
+---
 
 ## Deploy to Production
 
-Use [Alpic](https://alpic.ai/) to deploy your app to production:
+```bash
+pnpm deploy
+```
 
-[![Deploy on Alpic](https://assets.alpic.ai/button.svg)](https://app.alpic.ai/new/clone?repositoryUrl=https%3A%2F%2Fgithub.com%2Falpic-ai%2Fclaude-hacknight-starter-20-02-2026)
+Uses [Alpic](https://alpic.ai/) for deployment. Then add your deployed URL with `/mcp` appended as a remote MCP server in Claude settings.
 
-Then add your deployed URL with `/mcp` appended (e.g. `https://your-app-name.alpic.live/mcp`) as a remote MCP server in Claude settings.
+---
+
+## Roadmap
+
+- Google Calendar sync — block time automatically around recommendations
+- Apple Health energy data — replace manual mood input with biometric signal
+- Voice check-in — "I'm feeling great, what should I tackle?" via speech
+- Team mode — coordinate focus windows across a shared task list
+
+---
+
+## Philosophy
+
+Most productivity tools are designed for machines. Constant output. No friction. No humanity.
+
+Flowzen is designed for humans.
+
+The goal isn't to do more. **It's to feel good about what you did.**
+
+---
 
 ## Resources
 
 - [Skybridge Documentation](https://docs.skybridge.tech/)
-- [Apps SDK Documentation](https://developers.openai.com/apps-sdk)
-- [MCP Apps Documentation](https://github.com/modelcontextprotocol/ext-apps/tree/main)
-- [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
+- [Model Context Protocol](https://modelcontextprotocol.io/)
 - [Alpic Documentation](https://docs.alpic.ai/)
