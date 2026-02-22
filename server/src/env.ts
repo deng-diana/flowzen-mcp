@@ -24,8 +24,10 @@ export const env = createEnv({
   server: {
     SUPABASE_URL: z.string().min(1),
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-    CLERK_SECRET_KEY: z.string().min(1),
-    CLERK_PUBLISHABLE_KEY: z.string().min(1),
+    // Clerk auth has been removed from index.ts — these are now optional
+    // so the server starts cleanly even if they're not set in production
+    CLERK_SECRET_KEY: z.string().optional(),
+    CLERK_PUBLISHABLE_KEY: z.string().optional(),
     MCP_SERVER_URL: z.string().url().optional(),
     ANTHROPIC_API_KEY: z.string().optional(),
   },
