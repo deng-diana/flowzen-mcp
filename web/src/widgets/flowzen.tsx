@@ -73,6 +73,8 @@ function ManageTasks() {
   // A version counter triggers exactly ONE re-render when new server data arrives.
   const serverDataRef = useRef<Omit<FlowzenOutput, "tasks"> & { focusTips: string[] } | null>(null);
   const [serverDataVersion, setServerDataVersion] = useState(0);
+  // Loading indicator for recommendation section during mood change / show-another
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Celebration toast state
   const [celebration, setCelebration] = useState<{ emoji: string; text: string } | null>(null);
@@ -81,6 +83,9 @@ function ManageTasks() {
 
   // "Start this task" accepted state
   const [acceptedTaskId, setAcceptedTaskId] = useState<string | null>(null);
+
+  // Task drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Inline editing state
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -102,22 +107,24 @@ function ManageTasks() {
   // This completely eliminates the setWidgetState→output→useEffect infinite loop (React #185).
   const tasks = widgetState?.tasks ?? outputData?.tasks ?? null;
 
-  const syncWithServer = async (args: Parameters<typeof callToolAsync>[0]) => {
+  const syncWithServer = async (args: Parameters<typeof callToolAsync>[0], showLoading = false) => {
     const id = ++mutationCounter.current;
+    if (showLoading) setIsRefreshing(true);
     const result = await callToolAsync(args);
-    if (id === mutationCounter.current && result?.structuredContent?.tasks) {
-      const sc = result.structuredContent as FlowzenOutput;
-      // Store server data in ref (synchronous, no re-render)
-      serverDataRef.current = {
-        recommendation: sc.recommendation,
-        reason: sc.reason,
-        reward: sc.reward,
-        timeContext: sc.timeContext,
-        focusTips: sc.focusTips ?? [],
-      };
-      // Update tasks (optimistic) + trigger exactly one re-render for new server data
-      setWidgetState(() => ({ tasks: sc.tasks }));
-      setServerDataVersion((v) => v + 1);
+    if (id === mutationCounter.current) {
+      setIsRefreshing(false);
+      if (result?.structuredContent?.tasks) {
+        const sc = result.structuredContent as FlowzenOutput;
+        serverDataRef.current = {
+          recommendation: sc.recommendation,
+          reason: sc.reason,
+          reward: sc.reward,
+          timeContext: sc.timeContext,
+          focusTips: sc.focusTips ?? [],
+        };
+        setWidgetState(() => ({ tasks: sc.tasks }));
+        setServerDataVersion((v) => v + 1);
+      }
     }
   };
 
@@ -302,6 +309,16 @@ function ManageTasks() {
         </div>
         <div className="flowzen-header-right">
           <button
+            className="tasks-drawer-trigger"
+            onClick={() => setDrawerOpen(true)}
+            aria-label="Open task list"
+          >
+            <span className="tasks-trigger-label">My Tasks</span>
+            {tasks.length > 0 && (
+              <span className="tasks-trigger-badge">{todoCount}</span>
+            )}
+          </button>
+          <button
             className={`flowzen-expand-btn${isFullscreen ? " active" : ""}`}
             onClick={() => setDisplayMode(isFullscreen ? "inline" : "fullscreen")}
             aria-label={isFullscreen ? "Collapse" : "Expand"}
@@ -432,180 +449,6 @@ function ManageTasks() {
         </div>
       )}
 
-      {/* Divider */}
-      <div className="flowzen-divider" />
-
-      {/* ALL TASKS Section */}
-      <div className="flowzen-section">
-        <div className="flowzen-section-label">
-          <span>ALL TASKS</span>
-          {activeTasks.length > 0 && (
-            <span className="task-count-badge">{activeTasks.length} active</span>
-          )}
-          <button
-            className="add-task-inline-btn"
-            onClick={openAddForm}
-            aria-label="Add a new task"
-          >
-            + Add task
-          </button>
-        </div>
-
-        {/* Inline add form */}
-        {isAddOpen && (
-          <div className="inline-add-form">
-            <input
-              ref={addInputRef}
-              type="text"
-              className="add-input"
-              placeholder='e.g. "Finish project proposal"'
-              value={addTitle}
-              onChange={(e) => setAddTitle(e.target.value)}
-              onKeyDown={handleAddKeyDown}
-              autoComplete="off"
-              maxLength={120}
-            />
-            <div className="add-row">
-              <div className="priority-chips">
-                {([
-                  { value: "high" as const, label: "High", color: "#d97757" },
-                  { value: "medium" as const, label: "Med", color: "#6a9bcc" },
-                  { value: "low" as const, label: "Low", color: "#788c5d" },
-                ]).map((p) => (
-                  <button
-                    key={p.value}
-                    className={`priority-chip ${addPriority === p.value ? "active" : ""}`}
-                    style={addPriority === p.value ? { color: p.color, borderColor: p.color + "55", background: p.color + "11" } : {}}
-                    onClick={() => setAddPriority(p.value)}
-                    type="button"
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-              <button className="add-btn" onClick={submitAdd}>
-                Add ↵
-              </button>
-              <button className="add-cancel-btn" onClick={closeAddForm} type="button" aria-label="Cancel">
-                ✕
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {tasks.length === 0 && !isAddOpen ? (
-          <div className="flowzen-empty-state">
-            <div className="empty-state-icon">🌊</div>
-            <div className="empty-state-heading">What's on your plate today?</div>
-            <button className="empty-cta-btn" onClick={openAddForm}>
-              + Add your first task
-            </button>
-          </div>
-        ) : tasks.length > 0 ? (
-          <div className="flowzen-task-list">
-            {activeTasks.map((task) => {
-              const isRecommended = recommendation?.id === task.id;
-              const isEditing = editingTaskId === task.id;
-              return (
-                <div
-                  key={task.id}
-                  className={`flowzen-task-item ${isRecommended ? "recommended" : ""} ${isEditing ? "editing" : ""}`}
-                >
-                  {!isEditing && (
-                    <button
-                      className="flowzen-checkbox"
-                      onClick={() => handleToggle(task.id, recommendation?.id)}
-                      aria-label="Mark complete"
-                    />
-                  )}
-
-                  <div className="flowzen-task-content">
-                    {isEditing ? (
-                      <input
-                        ref={editInputRef}
-                        className="flowzen-task-edit-input"
-                        value={editingValue}
-                        onChange={(e) => setEditingValue(e.target.value)}
-                        onKeyDown={(e) => handleEditKeyDown(e, task.id)}
-                        onBlur={() => handleEditSave(task.id)}
-                        maxLength={120}
-                        aria-label="Edit task title"
-                      />
-                    ) : (
-                      <span
-                        className="flowzen-task-title"
-                        onDoubleClick={() => handleDoubleClick(task)}
-                        title="Double-click to edit"
-                      >
-                        {task.title}
-                      </span>
-                    )}
-
-                    {!isEditing && (
-                      <div className="flowzen-task-meta">
-                        <span
-                          className="flowzen-priority-dot"
-                          style={{ background: PRIORITY_COLORS[task.priority] ?? "#b0aea5" }}
-                          title={`${task.priority} priority`}
-                        />
-                        <span className="flowzen-priority-label" style={{ color: PRIORITY_COLORS[task.priority] ?? "#b0aea5" }}>
-                          {task.priority}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {isEditing ? (
-                    <div className="flowzen-edit-actions">
-                      <span className="flowzen-edit-hint">↵ save · esc cancel</span>
-                    </div>
-                  ) : (
-                    <>
-                      {isRecommended && <span className="now-badge">NOW</span>}
-                      <button
-                        className="flowzen-delete-btn"
-                        onClick={() => handleDelete(task.id)}
-                        aria-label="Delete task"
-                      >
-                        ×
-                      </button>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-
-            {doneTasks.length > 0 && (
-              <>
-                <div className="done-section-label">Completed</div>
-                {doneTasks.map((task) => (
-                  <div key={task.id} className="flowzen-task-item done">
-                    <button
-                      className="flowzen-checkbox checked"
-                      onClick={() => handleToggle(task.id)}
-                      aria-label="Mark incomplete"
-                    >
-                      ✓
-                    </button>
-                    <div className="flowzen-task-content">
-                      <span className="flowzen-task-title done-title">{task.title}</span>
-                    </div>
-                    <button
-                      className="flowzen-delete-btn"
-                      onClick={() => handleDelete(task.id)}
-                      aria-label="Delete task"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </>
-            )}
-          </div>
-        ) : null}
-      </div>
-
       {/* Celebration Toast */}
       {celebration && (
         <div className={`celebration-toast${celebrationLeaving ? " leaving" : ""}`}>
@@ -613,6 +456,187 @@ function ManageTasks() {
           <span>{celebration.text}</span>
         </div>
       )}
+
+      {/* Task Drawer Backdrop */}
+      {drawerOpen && (
+        <div
+          className="task-drawer-backdrop"
+          onClick={() => setDrawerOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Task Drawer */}
+      <div className={`task-drawer${drawerOpen ? " open" : ""}`} role="dialog" aria-label="All Tasks">
+        {/* Drawer Header */}
+        <div className="task-drawer-header">
+          <div className="task-drawer-title-row">
+            <span className="task-drawer-title">ALL TASKS</span>
+            {activeTasks.length > 0 && (
+              <span className="task-count-badge">{activeTasks.length} active</span>
+            )}
+          </div>
+          <div className="task-drawer-actions">
+            <button
+              className="add-task-inline-btn"
+              onClick={() => { openAddForm(); }}
+              aria-label="Add a new task"
+            >
+              + Add task
+            </button>
+            <button
+              className="task-drawer-close"
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Close task list"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        {/* Drawer Body */}
+        <div className="task-drawer-body">
+          {/* Inline add form */}
+          {isAddOpen && (
+            <div className="inline-add-form">
+              <input
+                ref={addInputRef}
+                type="text"
+                className="add-input"
+                placeholder='e.g. "Finish project proposal"'
+                value={addTitle}
+                onChange={(e) => setAddTitle(e.target.value)}
+                onKeyDown={handleAddKeyDown}
+                autoComplete="off"
+                maxLength={120}
+              />
+              <div className="add-row">
+                <div className="priority-chips">
+                  {([
+                    { value: "high" as const, label: "High", color: "#d97757" },
+                    { value: "medium" as const, label: "Med", color: "#6a9bcc" },
+                    { value: "low" as const, label: "Low", color: "#788c5d" },
+                  ]).map((p) => (
+                    <button
+                      key={p.value}
+                      className={`priority-chip ${addPriority === p.value ? "active" : ""}`}
+                      style={addPriority === p.value ? { color: p.color, borderColor: p.color + "55", background: p.color + "11" } : {}}
+                      onClick={() => setAddPriority(p.value)}
+                      type="button"
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+                <button className="add-btn" onClick={submitAdd}>Add ↵</button>
+                <button className="add-cancel-btn" onClick={closeAddForm} type="button" aria-label="Cancel">✕</button>
+              </div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {tasks.length === 0 && !isAddOpen ? (
+            <div className="flowzen-empty-state">
+              <div className="empty-state-icon">🌊</div>
+              <div className="empty-state-heading">What's on your plate today?</div>
+              <button className="empty-cta-btn" onClick={openAddForm}>
+                + Add your first task
+              </button>
+            </div>
+          ) : tasks.length > 0 ? (
+            <div className="flowzen-task-list">
+              {activeTasks.map((task) => {
+                const isRecommended = recommendation?.id === task.id;
+                const isEditing = editingTaskId === task.id;
+                return (
+                  <div
+                    key={task.id}
+                    className={`flowzen-task-item ${isRecommended ? "recommended" : ""} ${isEditing ? "editing" : ""}`}
+                  >
+                    {!isEditing && (
+                      <button
+                        className="flowzen-checkbox"
+                        onClick={() => handleToggle(task.id, recommendation?.id)}
+                        aria-label="Mark complete"
+                      />
+                    )}
+                    <div className="flowzen-task-content">
+                      {isEditing ? (
+                        <input
+                          ref={editInputRef}
+                          className="flowzen-task-edit-input"
+                          value={editingValue}
+                          onChange={(e) => setEditingValue(e.target.value)}
+                          onKeyDown={(e) => handleEditKeyDown(e, task.id)}
+                          onBlur={() => handleEditSave(task.id)}
+                          maxLength={120}
+                          aria-label="Edit task title"
+                        />
+                      ) : (
+                        <span
+                          className="flowzen-task-title"
+                          onDoubleClick={() => handleDoubleClick(task)}
+                          title="Double-click to edit"
+                        >
+                          {task.title}
+                        </span>
+                      )}
+                      {!isEditing && (
+                        <div className="flowzen-task-meta">
+                          <span
+                            className="flowzen-priority-dot"
+                            style={{ background: PRIORITY_COLORS[task.priority] ?? "#b0aea5" }}
+                          />
+                          <span className="flowzen-priority-label" style={{ color: PRIORITY_COLORS[task.priority] ?? "#b0aea5" }}>
+                            {task.priority}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {isEditing ? (
+                      <div className="flowzen-edit-actions">
+                        <span className="flowzen-edit-hint">↵ save · esc cancel</span>
+                      </div>
+                    ) : (
+                      <>
+                        {isRecommended && <span className="now-badge">NOW</span>}
+                        <button
+                          className="flowzen-delete-btn"
+                          onClick={() => handleDelete(task.id)}
+                          aria-label="Delete task"
+                        >×</button>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+
+              {doneTasks.length > 0 && (
+                <>
+                  <div className="done-section-label">Completed</div>
+                  {doneTasks.map((task) => (
+                    <div key={task.id} className="flowzen-task-item done">
+                      <button
+                        className="flowzen-checkbox checked"
+                        onClick={() => handleToggle(task.id)}
+                        aria-label="Mark incomplete"
+                      >✓</button>
+                      <div className="flowzen-task-content">
+                        <span className="flowzen-task-title done-title">{task.title}</span>
+                      </div>
+                      <button
+                        className="flowzen-delete-btn"
+                        onClick={() => handleDelete(task.id)}
+                        aria-label="Delete task"
+                      >×</button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }
