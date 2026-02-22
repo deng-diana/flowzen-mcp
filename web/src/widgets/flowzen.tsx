@@ -42,43 +42,18 @@ function shortenTip(tip: string): string {
   return words.slice(0, 10).join(" ") + "…";
 }
 
-// Flowzen SVG Logo — orange circle with "Flo" + wavy "zen" stroke
+import logoSrc from "../assets/flowzen-logo.svg";
+
+// Flowzen Logo — using imported custom design
 function FlowzenLogo({ size = 36 }: { size?: number }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 120 120"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ flexShrink: 0, borderRadius: "50%" }}
-    >
-      {/* Background circle */}
-      <circle cx="60" cy="60" r="60" fill="#d97757" />
-      {/* "Flo" text — bold serif */}
-      <text
-        x="60"
-        y="56"
-        textAnchor="middle"
-        fontSize="36"
-        fontFamily="Georgia, serif"
-        fontWeight="700"
-        fill="#ffffff"
-        letterSpacing="-1"
-      >
-        Flo
-      </text>
-      {/* Wavy "zen" stroke — represents flow/waves */}
-      <path
-        d="M30 75 Q38 65 46 75 Q54 85 62 75 Q70 65 78 75 Q86 85 94 75"
-        stroke="#ffffff"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-        opacity="0.85"
-      />
-    </svg>
+    <img 
+      src={logoSrc} 
+      alt="Flowzen Logo" 
+      width={size} 
+      height={size} 
+      style={{ flexShrink: 0, borderRadius: "50%" }} 
+    />
   );
 }
 
