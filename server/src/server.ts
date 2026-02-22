@@ -417,10 +417,6 @@ const server = new McpServer(
     const active = tasks.filter((t) => !t.completed).length;
     const done = tasks.filter((t) => t.completed).length;
 
-    const summaryText = recommendation
-      ? `Your Flowzen board is open.`
-      : `Your Flowzen board is open. All tasks complete!`;
-
     return {
       structuredContent: {
         tasks,
@@ -433,7 +429,9 @@ const server = new McpServer(
       content: [
         {
           type: "text",
-          text: summaryText,
+          text: recommendation
+            ? `✓ Flowzen widget is open. Do not add any text — the widget shows everything.`
+            : `✓ Flowzen widget is open. All tasks complete! Do not add any text.`,
         },
       ],
     };

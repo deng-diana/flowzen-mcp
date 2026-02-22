@@ -1,5 +1,5 @@
 import "@/index.css";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback } from "react";
 import { mountWidget, useLayout, useWidgetState } from "skybridge/web";
 import React from "react";
 import { useToolInfo, useCallTool } from "../helpers";
@@ -67,10 +67,12 @@ function ManageTasks() {
 
   const [mood, setMood] = useState<Mood>("okay");
   const [widgetState, setWidgetState] = useWidgetState<{ tasks: Task[] }>();
-  const [flowzenData, setFlowzenData] = useState<Omit<FlowzenOutput, "tasks"> | null>(null);
-  const [focusTips, setFocusTips] = useState<string[]>([]);
   const [excludedIds, setExcludedIds] = useState<string[]>([]);
   const mutationCounter = useRef(0);
+  // Server response data stored in a ref (no re-render on write) to avoid useEffect loops.
+  // A version counter triggers exactly ONE re-render when new server data arrives.
+  const serverDataRef = useRef<Omit<FlowzenOutput, "tasks"> & { focusTips: string[] } | null>(null);
+  const [serverDataVersion, setServerDataVersion] = useState(0);
 
   // Celebration toast state
   const [celebration, setCelebration] = useState<{ emoji: string; text: string } | null>(null);
@@ -96,23 +98,8 @@ function ManageTasks() {
 
   const outputData = output as FlowzenOutput | null;
 
-  // Sync flowzenData when output changes.
-  // NOTE: Do NOT call setWidgetState here — it causes Skybridge to update the output
-  // reference, which re-fires this effect endlessly (React error #185).
-  // tasks are derived directly from outputData as fallback (see line below).
-  useEffect(() => {
-    if (outputData?.recommendation !== undefined && flowzenData === null) {
-      setFlowzenData({
-        recommendation: outputData.recommendation,
-        reason: outputData.reason,
-        reward: outputData.reward,
-        timeContext: outputData.timeContext,
-      });
-      setFocusTips(outputData.focusTips ?? []);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [output]);
-
+  // No useEffect needed — server data is stored in a ref and displayed via derived values below.
+  // This completely eliminates the setWidgetState→output→useEffect infinite loop (React #185).
   const tasks = widgetState?.tasks ?? outputData?.tasks ?? null;
 
   const syncWithServer = async (args: Parameters<typeof callToolAsync>[0]) => {
@@ -120,16 +107,17 @@ function ManageTasks() {
     const result = await callToolAsync(args);
     if (id === mutationCounter.current && result?.structuredContent?.tasks) {
       const sc = result.structuredContent as FlowzenOutput;
+      // Store server data in ref (synchronous, no re-render)
+      serverDataRef.current = {
+        recommendation: sc.recommendation,
+        reason: sc.reason,
+        reward: sc.reward,
+        timeContext: sc.timeContext,
+        focusTips: sc.focusTips ?? [],
+      };
+      // Update tasks (optimistic) + trigger exactly one re-render for new server data
       setWidgetState(() => ({ tasks: sc.tasks }));
-      if (sc.recommendation !== undefined) {
-        setFlowzenData({
-          recommendation: sc.recommendation,
-          reason: sc.reason,
-          reward: sc.reward,
-          timeContext: sc.timeContext,
-        });
-        setFocusTips(sc.focusTips ?? []);
-      }
+      setServerDataVersion((v) => v + 1);
     }
   };
 
@@ -260,10 +248,16 @@ function ManageTasks() {
   const todoCount = tasks.filter((t) => !t.completed).length;
   const doneCount = tasks.filter((t) => t.completed).length;
 
-  const recommendation = flowzenData?.recommendation ?? outputData?.recommendation ?? null;
-  const reason = flowzenData?.reason ?? outputData?.reason ?? "";
-  const reward = flowzenData?.reward ?? outputData?.reward;
-  const timeContext = flowzenData?.timeContext ?? outputData?.timeContext ?? "";
+  // Derive display values: prefer fresh server data (from user actions), fall back to outputData (initial AI call)
+  const sd = serverDataRef.current;
+  const recommendation = sd?.recommendation ?? outputData?.recommendation ?? null;
+  const reason = sd?.reason ?? outputData?.reason ?? "";
+  const reward = sd?.reward ?? outputData?.reward;
+  const timeContext = sd?.timeContext ?? outputData?.timeContext ?? "";
+  const effectiveFocusTips = sd?.focusTips ?? outputData?.focusTips ?? [];
+
+  // Suppress unused-variable warning — serverDataVersion is only used to trigger re-renders
+  void serverDataVersion;
 
   const handleTryAnother = () => {
     if (!recommendation) return;
@@ -277,8 +271,6 @@ function ManageTasks() {
     setAcceptedTaskId(recommendation.id);
     syncWithServer({ acceptRecommendationId: recommendation.id, mood });
   };
-
-  const effectiveFocusTips = focusTips.length > 0 ? focusTips : (outputData?.focusTips ?? []);
   const activeTasks = tasks.filter((t) => !t.completed);
   const doneTasks = tasks.filter((t) => t.completed);
 
