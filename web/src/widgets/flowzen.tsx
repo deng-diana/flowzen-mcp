@@ -85,7 +85,7 @@ function FlowzenLogo({ size = 36 }: { size?: number }) {
 function ManageTasks() {
   const { output, isPending } = useToolInfo<"flowzen">();
   const { callToolAsync } = useCallTool("flowzen");
-  const { theme } = useLayout();
+  const { theme, maxHeight } = useLayout();
   // Always use light mode with custom brand background
   const isDark = false; // Force light mode per design spec
 
@@ -285,6 +285,7 @@ function ManageTasks() {
   return (
     <div
       className="flowzen-container light"
+      style={{ maxHeight: maxHeight ?? 560, overflow: "hidden" }}
       data-llm={`Mood: ${mood}. Recommendation: ${recommendation?.title ?? "none"}. ${todoCount} active tasks, ${doneCount} done. Time: ${timeContext}.`}
     >
       {/* Header */}
