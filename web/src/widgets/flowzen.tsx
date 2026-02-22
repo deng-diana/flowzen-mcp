@@ -250,6 +250,15 @@ function ManageTasks() {
     else if (e.key === "Escape") { handleEditCancel(); }
   };
 
+  const handlePriorityChange = (taskId: string, newPriority: "low" | "medium" | "high") => {
+    setWidgetState((prev) => ({
+      tasks: safeTasks(prev).map((t) =>
+        t.id === taskId ? { ...t, priority: newPriority } : t
+      ),
+    }));
+    syncWithServer({ actions: [{ type: "update_priority", taskId, priority: newPriority }], mood });
+  };
+
   // === Early return AFTER all hooks ===
   if (tasks === null) {
     return <LoadingScreen />;
@@ -320,6 +329,7 @@ function ManageTasks() {
             {todoCount > 0 && (
               <span className="tasks-trigger-badge">{todoCount}</span>
             )}
+            <span className="tasks-trigger-arrow">›</span>
           </button>
           <button
             className={`flowzen-expand-btn${isFullscreen ? " active" : ""}`}
@@ -396,32 +406,8 @@ function ManageTasks() {
                     {recommendation.priority === "high" ? "HIGH PRIORITY" : recommendation.priority === "medium" ? "MED PRIORITY" : "LOW PRIORITY"}
                   </span>
                 </div>
-                <button className="start-task-btn" onClick={handleStartTask}>
-                  → Start this task
-                </button>
-              </div>
-            </>
-          )}
 
-          {/* ── AFTER START: in-progress state + coaching reveal ── */}
-          {isAccepted && (
-            <>
-              {/* In-progress bar */}
-              <div className="in-progress-bar">
-                <span className="in-progress-dot" />
-                <span className="in-progress-label">IN PROGRESS</span>
-                <span className="in-progress-task-title">{recommendation.title}</span>
-                <button
-                  className="mark-done-btn"
-                  onClick={() => handleToggle(recommendation.id, recommendation.id)}
-                >
-                  ✓ Done
-                </button>
-              </div>
-
-              {/* Coaching section — fades in after commitment */}
-              <div className="coaching-reveal">
-                {/* Why this task */}
+                {/* Why this task — shown immediately so user understands before committing */}
                 {reasonBullets.length > 0 && (
                   <div className="rec-reason-wrapper">
                     <div className="rec-reason-header">
@@ -447,6 +433,31 @@ function ManageTasks() {
                   </div>
                 )}
 
+                <button className="start-task-btn" onClick={handleStartTask}>
+                  → Start this task
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ── AFTER START: in-progress state + coaching reveal ── */}
+          {isAccepted && (
+            <>
+              {/* In-progress bar */}
+              <div className="in-progress-bar">
+                <span className="in-progress-dot" />
+                <span className="in-progress-label">IN PROGRESS</span>
+                <span className="in-progress-task-title">{recommendation.title}</span>
+                <button
+                  className="mark-done-btn"
+                  onClick={() => handleToggle(recommendation.id, recommendation.id)}
+                >
+                  ✓ Done
+                </button>
+              </div>
+
+              {/* Coaching section — fades in after commitment (Why is already shown above) */}
+              <div className="coaching-reveal">
                 {/* Focus Tips */}
                 {effectiveFocusTips.length > 0 && (
                   <div className="focus-tips-section">
@@ -622,9 +633,20 @@ function ManageTasks() {
                             className="flowzen-priority-dot"
                             style={{ background: PRIORITY_COLORS[task.priority] ?? "#b0aea5" }}
                           />
-                          <span className="flowzen-priority-label" style={{ color: PRIORITY_COLORS[task.priority] ?? "#b0aea5" }}>
-                            {task.priority}
-                          </span>
+                          <div className="priority-select-wrapper" style={{ color: PRIORITY_COLORS[task.priority] ?? "#b0aea5" }}>
+                            <select
+                              className="priority-select"
+                              value={task.priority}
+                              onChange={(e) => handlePriorityChange(task.id, e.target.value as "low" | "medium" | "high")}
+                              onClick={(e) => e.stopPropagation()}
+                              aria-label="Change priority"
+                            >
+                              <option value="high">HIGH</option>
+                              <option value="medium">MED</option>
+                              <option value="low">LOW</option>
+                            </select>
+                            <span className="priority-select-arrow">▾</span>
+                          </div>
                         </div>
                       )}
                     </div>

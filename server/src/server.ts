@@ -214,6 +214,11 @@ const ActionSchema = z.discriminatedUnion("type", [
     taskId: z.string().describe("ID of the task to rename"),
     title: z.string().describe("New title for the task"),
   }),
+  z.object({
+    type: z.literal("update_priority"),
+    taskId: z.string().describe("ID of the task to update"),
+    priority: z.enum(["low", "medium", "high"]).describe("New priority level"),
+  }),
 ]);
 
 const server = new McpServer(
@@ -289,19 +294,21 @@ const server = new McpServer(
     }
 
     if (actions && actions.length > 0) {
-      // Handle rename separately (not in supabase.ts executeActions)
+      // rename and update_priority are handled here directly (not in supabase.ts executeActions)
       const renameActions = actions.filter((a) => a.type === "rename");
-      const otherActions = actions.filter((a) => a.type !== "rename");
+      const priorityActions = actions.filter((a) => a.type === "update_priority");
+      const otherActions = actions.filter((a) => a.type !== "rename" && a.type !== "update_priority");
 
       await Promise.all([
         otherActions.length > 0 ? executeActions(userId, otherActions as any) : Promise.resolve(),
         ...renameActions.map((a) =>
-          a.taskId && a.title
-            ? supabase
-                .from("tasks")
-                .update({ title: a.title })
-                .eq("id", a.taskId)
-                .eq("user_id", userId)
+          a.type === "rename" && a.taskId && a.title
+            ? supabase.from("tasks").update({ title: a.title }).eq("id", a.taskId).eq("user_id", userId)
+            : Promise.resolve()
+        ),
+        ...priorityActions.map((a) =>
+          a.type === "update_priority" && a.taskId
+            ? supabase.from("tasks").update({ priority: a.priority }).eq("id", a.taskId).eq("user_id", userId)
             : Promise.resolve()
         ),
       ]);
