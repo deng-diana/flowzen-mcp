@@ -11,7 +11,7 @@ type Mood = "great" | "okay" | "tired";
 const MOOD_OPTIONS: { value: Mood; emoji: string; label: string; sub: string }[] = [
   { value: "great", emoji: "🔥", label: "On fire",    sub: "Ready to crush it" },
   { value: "okay",  emoji: "🙂", label: "Getting by", sub: "Steady, not spectacular" },
-  { value: "tired", emoji: "🌿", label: "Low energy", sub: "Need gentle wins" },
+  { value: "tired", emoji: "😴", label: "Low energy", sub: "Need gentle wins" },
 ];
 
 const CELEBRATION_MESSAGES = [
@@ -314,7 +314,7 @@ function ManageTasks() {
             aria-label="Open task list"
           >
             <span className="tasks-trigger-label">My Tasks</span>
-            {tasks.length > 0 && (
+            {todoCount > 0 && (
               <span className="tasks-trigger-badge">{todoCount}</span>
             )}
           </button>
@@ -353,98 +353,115 @@ function ManageTasks() {
       {/* Recommendation Card */}
       {recommendation ? (
         <div className={`recommendation-section${isRefreshing ? " refreshing" : ""}`}>
-          <div className="rec-header">
-            <span className="rec-icon">⚡</span>
-            <span className="rec-title">DO THIS NOW</span>
-            <button className="try-another-btn" onClick={handleTryAnother} disabled={isRefreshing}>
-              {isRefreshing ? "..." : "Show me another"}
-            </button>
-          </div>
-          <div className="rec-card">
-            <div className="rec-task-title">{recommendation.title}</div>
-            <div className="rec-task-meta">
-              <span
-                className="rec-priority-badge"
-                style={{
-                  background: `${PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5"}18`,
-                  color: PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5",
-                  border: `1px solid ${PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5"}40`,
-                }}
-              >
-                {recommendation.priority === "high" ? "HIGH PRIORITY" : recommendation.priority === "medium" ? "MED PRIORITY" : "LOW PRIORITY"}
-              </span>
-            </div>
 
-            {/* Start this task CTA */}
-            <button
-              className={`start-task-btn${isAccepted ? " accepted" : ""}`}
-              onClick={isAccepted ? undefined : handleStartTask}
-              disabled={isAccepted}
-            >
-              {isAccepted ? (
-                <>✓ Starting this</>
-              ) : (
-                <>→ Start this task</>
-              )}
-            </button>
-          </div>
-
-          {/* Why this task */}
-          {reasonBullets.length > 0 && (
-            <div className="rec-reason-wrapper">
-              <div className="rec-reason-header">
-                <span className="rec-reason-icon">🧠</span>
-                <span className="rec-reason-label">Why this task?</span>
+          {/* ── BEFORE START: show task + CTA only ── */}
+          {!isAccepted && (
+            <>
+              <div className="rec-header">
+                <span className="rec-icon">⚡</span>
+                <span className="rec-title">DO THIS NOW</span>
+                <button className="try-another-btn" onClick={handleTryAnother} disabled={isRefreshing}>
+                  {isRefreshing ? "..." : "Show me another"}
+                </button>
               </div>
-              <div className="rec-reason">
-                {reasonBullets.map((bullet, i) => (
-                  <div key={i} className="rec-reason-bullet">
-                    <span className="rec-reason-dot">·</span>
-                    <span
-                      className="rec-reason-text"
-                      dangerouslySetInnerHTML={{
-                        __html: bullet
-                          .replace(/(cortisol|prefrontal cortex|dopamine|serotonin|BDNF|cognitive|melatonin|focus window|energy peak)/gi,
-                            "<strong>$1</strong>")
-                          .replace(/(It's \d+:\d+)/g, "<strong>$1</strong>"),
-                      }}
-                    />
+              <div className="rec-card">
+                <div className="rec-task-title">{recommendation.title}</div>
+                <div className="rec-task-meta">
+                  <span
+                    className="rec-priority-badge"
+                    style={{
+                      background: `${PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5"}18`,
+                      color: PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5",
+                      border: `1px solid ${PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5"}40`,
+                    }}
+                  >
+                    {recommendation.priority === "high" ? "HIGH PRIORITY" : recommendation.priority === "medium" ? "MED PRIORITY" : "LOW PRIORITY"}
+                  </span>
+                </div>
+                <button className="start-task-btn" onClick={handleStartTask}>
+                  → Start this task
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ── AFTER START: in-progress state + coaching reveal ── */}
+          {isAccepted && (
+            <>
+              {/* In-progress bar */}
+              <div className="in-progress-bar">
+                <span className="in-progress-dot" />
+                <span className="in-progress-label">IN PROGRESS</span>
+                <span className="in-progress-task-title">{recommendation.title}</span>
+                <button
+                  className="mark-done-btn"
+                  onClick={() => handleToggle(recommendation.id, recommendation.id)}
+                >
+                  ✓ Done
+                </button>
+              </div>
+
+              {/* Coaching section — fades in after commitment */}
+              <div className="coaching-reveal">
+                {/* Why this task */}
+                {reasonBullets.length > 0 && (
+                  <div className="rec-reason-wrapper">
+                    <div className="rec-reason-header">
+                      <span className="rec-reason-icon">🧠</span>
+                      <span className="rec-reason-label">Why this task?</span>
+                    </div>
+                    <div className="rec-reason">
+                      {reasonBullets.map((bullet, i) => (
+                        <div key={i} className="rec-reason-bullet">
+                          <span className="rec-reason-dot">·</span>
+                          <span
+                            className="rec-reason-text"
+                            dangerouslySetInnerHTML={{
+                              __html: bullet
+                                .replace(/(cortisol|prefrontal cortex|dopamine|serotonin|BDNF|cognitive|melatonin|focus window|energy peak)/gi,
+                                  "<strong>$1</strong>")
+                                .replace(/(It's \d+:\d+)/g, "<strong>$1</strong>"),
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                )}
+
+                {/* Focus Tips */}
+                {effectiveFocusTips.length > 0 && (
+                  <div className="focus-tips-section">
+                    {effectiveFocusTips.slice(0, 2).map((tip, i) => (
+                      <div key={i} className="focus-tip">
+                        <span className="focus-tip-icon">💡</span>
+                        <span className="focus-tip-text">{cleanTip(tip)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Reward */}
+                {reward && (
+                  <div className="reward-section">
+                    <div className="reward-header">
+                      <span className="reward-icon">🎁</span>
+                      <span className="reward-title">YOU DESERVE AFTER</span>
+                    </div>
+                    <div className="reward-card">
+                      <span className="reward-emoji">{reward.emoji}</span>
+                      <span className="reward-text">{reward.text}</span>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
+            </>
           )}
         </div>
       ) : tasks.length === 0 ? null : (
         <div className="recommendation-section">
           <div className="rec-card rec-card--empty">
             <div className="rec-task-title">All tasks complete! 🎉</div>
-          </div>
-        </div>
-      )}
-
-      {/* Focus Tips — full text */}
-      {effectiveFocusTips.length > 0 && recommendation && (
-        <div className="focus-tips-section">
-          {effectiveFocusTips.slice(0, 2).map((tip, i) => (
-            <div key={i} className="focus-tip">
-              <span className="focus-tip-icon">💡</span>
-              <span className="focus-tip-text">{cleanTip(tip)}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Happiness Reward */}
-      {reward && recommendation && (
-        <div className="reward-section">
-          <div className="reward-header">
-            <span className="reward-icon">🎁</span>
-            <span className="reward-title">YOU DESERVE</span>
-          </div>
-          <div className="reward-card">
-            <span className="reward-emoji">{reward.emoji}</span>
-            <span className="reward-text">{reward.text}</span>
           </div>
         </div>
       )}

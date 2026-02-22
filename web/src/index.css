@@ -1393,6 +1393,92 @@ body {
   margin-top: 1.5rem;
 }
 
+/* ── In-Progress Bar (after "Start this task") ── */
+.in-progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  border: 1.5px solid rgba(120, 140, 93, 0.35);
+  border-radius: 0.875rem;
+  padding: 0.625rem 0.875rem;
+  margin-bottom: 0.625rem;
+  box-shadow: 0 1px 6px rgba(120, 140, 93, 0.1);
+}
+
+.in-progress-dot {
+  width: 7px;
+  height: 7px;
+  min-width: 7px;
+  border-radius: 50%;
+  background: #788c5d;
+  animation: in-progress-pulse 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes in-progress-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.55; transform: scale(0.8); }
+}
+
+.in-progress-label {
+  font-family: "Poppins", Arial, sans-serif;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #788c5d;
+  flex-shrink: 0;
+}
+
+.in-progress-task-title {
+  font-family: "Lora", Georgia, serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #2d2926;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mark-done-btn {
+  flex-shrink: 0;
+  padding: 0.25rem 0.75rem;
+  background: #788c5d;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  font-family: "Poppins", Arial, sans-serif;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+
+.mark-done-btn:hover {
+  background: #5e7046;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(120, 140, 93, 0.3);
+}
+
+.mark-done-btn:active {
+  transform: scale(0.97);
+}
+
+/* ── Coaching Reveal (fades in after starting task) ── */
+@keyframes coaching-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.coaching-reveal {
+  animation: coaching-fade-in 0.38s ease-out forwards;
+}
+
 /* ── Backwards compat ── */
 .todo-container {
   max-width: 480px;
