@@ -222,7 +222,7 @@ const server = new McpServer(
 ).registerWidget(
   "flowzen",
   {
-    description: "Flowzen — smart task prioritization based on your energy. Flowzen helps you decide what to work on next by matching your tasks to your current energy level and time of day. Tell it how you're feeling (on fire / getting by / low energy), and it instantly recommends the single most important task to tackle right now — backed by neuroscience reasoning. Use this tool whenever the user: asks what to do next or where to start; feels overwhelmed or can't prioritise; mentions their energy level or mood; wants to add, complete, rename, or delete tasks; or needs help deciding. You can also call it to show the full task board.",
+    description: "Flowzen — smart task prioritization based on your energy. Instantly recommends the single most important task to tackle right now, matched to your energy level and time of day. Call this tool whenever the user: mentions ANY tasks they need to do (extract them and add all at once); asks what to do next or where to start; feels overwhelmed or can't prioritise; states their energy or mood; wants to add, complete, rename, or delete tasks; or needs a recommendation. When a user describes their workload in natural language, extract every task and add them all in one call — never ask the user to re-enter tasks manually.",
     _meta: {
       ui: {
         csp: {
@@ -237,7 +237,11 @@ const server = new McpServer(
   },
   {
     description:
-      "Display the Flowzen task board with an AI-powered recommendation. Call this when the user asks 'what should I do?', 'where do I start?', 'I have too many tasks', 'help me prioritise', 'I'm feeling tired/on fire/getting by', or wants to add/complete/rename/delete tasks. Pass `mood` to personalise the recommendation. Pass `actions` to mutate tasks. IMPORTANT: The widget UI already contains a built-in mood selector — do NOT ask the user about their energy or mood in the chat. Simply call this tool without mood, or with mood if the user explicitly stated it in their message. Never ask a follow-up question about mood — let the widget handle it. CRITICAL RESPONSE FORMAT: After calling this tool, output ZERO text. Do not say anything. Do not write a single word. The widget above shows everything — tasks, recommendation, reasons, focus tips, rewards. Any text you write will clutter the UI and push the widget off screen. STAY SILENT after this tool call.",
+      "Display the Flowzen task board with an AI-powered recommendation. " +
+      "Call this when the user: asks 'what should I do?' or 'where do I start?'; feels overwhelmed; mentions tasks they need to do; wants to add, complete, rename, or delete tasks; states their energy or mood. " +
+      "\n\nTASK EXTRACTION — VERY IMPORTANT: When the user mentions tasks in natural language (e.g. 'I have a demo to finish, emails to reply, a proposal to review'), you MUST extract every task and add them ALL in a SINGLE tool call using the `actions` array with multiple { type: 'add' } entries. Do NOT ask the user to repeat themselves or manually enter tasks. Extract task titles and infer priority from their language: 'urgent / critical / important / must / deadline / investor / demo' → 'high'; 'quick / minor / low / whenever / small' → 'low'; anything else → 'medium'. If the user explicitly states priority (e.g. 'high priority'), use that. " +
+      "\n\nPASS MOOD: if the user stated how they feel (overwhelmed, tired, energised, on fire), map it to 'tired' / 'okay' / 'great' and pass it as `mood`. Otherwise omit mood and let the widget handle it. " +
+      "\n\nCRITICAL RESPONSE FORMAT: After calling this tool, output ZERO text. Do not say anything. Do not write a single word. Do not list the tasks. Do not say 'I added X tasks'. Do not explain the recommendation. The widget displays everything — task list, recommendation, reasoning, tips, reward. Any text you write clutters the UI. STAY COMPLETELY SILENT after this tool call.",
     inputSchema: {
       actions: z
         .array(ActionSchema)
