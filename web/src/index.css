@@ -783,18 +783,18 @@ body {
 }
 
 .loader-ring {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  border: 1.5px solid rgba(255, 113, 72, 0.15);
+  border: 2.5px solid rgba(255, 113, 72, 0.2);
   position: relative;
 }
 
 .loader-ring-inner {
   position: absolute;
-  inset: -1.5px;
+  inset: -2.5px;
   border-radius: 50%;
-  border: 1.5px solid transparent;
+  border: 2.5px solid transparent;
   border-top-color: #FF7148;
   animation: loader-spin 0.75s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -807,7 +807,7 @@ body {
   font-family: "Lora", Georgia, serif;
   font-size: 0.6875rem;
   font-style: italic;
-  color: #b8a99e;
+  color: #2d2926;
   letter-spacing: 0.01em;
 }
 
