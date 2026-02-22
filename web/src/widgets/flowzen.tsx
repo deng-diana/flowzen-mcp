@@ -86,9 +86,10 @@ function ManageTasks() {
     prev?.tasks ?? [];
 
   // Auto-fetch on mount if widget has no data yet (cold open — Claude hasn't called the tool yet)
+  // NOTE: Skybridge useToolInfo returns output=null (not undefined) when no tool call has happened yet
   const hasFetchedRef = useRef(false);
   useEffect(() => {
-    if (!hasFetchedRef.current && widgetState === undefined && (output as FlowzenOutput | undefined) === undefined) {
+    if (!hasFetchedRef.current && widgetState == null && output == null) {
       hasFetchedRef.current = true;
       callToolAsync({ mood }).catch(() => {});
     }
@@ -96,7 +97,7 @@ function ManageTasks() {
 
   // Sync widget state when server output changes
   useEffect(() => {
-    const out = output as FlowzenOutput | undefined;
+    const out = output as FlowzenOutput | null | undefined;
     if (out?.tasks) {
       setWidgetState(() => ({ tasks: out.tasks }));
       if (out.recommendation !== undefined) {
@@ -111,10 +112,11 @@ function ManageTasks() {
     }
   }, [output]);
 
-  const outputData = output as FlowzenOutput | undefined;
-  const tasks = widgetState?.tasks ?? outputData?.tasks;
+  // output is null (not undefined) when no tool call has happened yet per Skybridge internals
+  const outputData = (output ?? null) as FlowzenOutput | null;
+  const tasks = widgetState?.tasks ?? outputData?.tasks ?? null;
 
-  if (tasks === undefined) {
+  if (tasks === null) {
     return <LoadingScreen />;
   }
 
