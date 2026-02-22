@@ -1,13 +1,11 @@
 export function LoadingScreen({ isDark }: { isDark: boolean }) {
   return (
-    <div className={`flowzen-container ${isDark ? "dark" : "light"}`}>
-      <div className="loading-screen">
-        <div className="loader-ring">
-          <div className="loader-ring-inner" />
-        </div>
-        <div className="loading-brand">🌊 Flowzen</div>
-        <div className="loading-tagline">Finding your next best action...</div>
+    <div className="loading-screen" style={{ borderRadius: 20, background: "#FFE9D7" }}>
+      <div className="loader-ring">
+        <div className="loader-ring-inner" />
       </div>
+      <div className="loading-brand">🌊 Flowzen</div>
+      <div className="loading-tagline">Finding your next best action...</div>
     </div>
   );
 }
