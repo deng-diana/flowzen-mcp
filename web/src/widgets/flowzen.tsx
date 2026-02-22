@@ -301,24 +301,26 @@ function ManageTasks() {
         )}
       </div>
 
-      {/* Mood Selector */}
-      <div className="flowzen-section">
-        <div className="flowzen-section-label">HOW ARE YOU FEELING?</div>
-        <div className="mood-selector">
-          {MOOD_OPTIONS.map((m) => (
-            <button
-              key={m.value}
-              className={`mood-btn ${mood === m.value ? "active" : ""}`}
-              onClick={() => handleMoodChange(m.value)}
-              aria-pressed={mood === m.value}
-            >
-              <span className="mood-emoji">{m.emoji}</span>
-              <span className="mood-label">{m.label}</span>
-              <span className="mood-sub">{m.sub}</span>
-            </button>
-          ))}
+      {/* Mood Selector — only show when there are tasks */}
+      {tasks.length > 0 && (
+        <div className="flowzen-section">
+          <div className="flowzen-section-label">HOW ARE YOU FEELING?</div>
+          <div className="mood-selector">
+            {MOOD_OPTIONS.map((m) => (
+              <button
+                key={m.value}
+                className={`mood-btn ${mood === m.value ? "active" : ""}`}
+                onClick={() => handleMoodChange(m.value)}
+                aria-pressed={mood === m.value}
+              >
+                <span className="mood-emoji">{m.emoji}</span>
+                <span className="mood-label">{m.label}</span>
+                <span className="mood-sub">{m.sub}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Recommendation Card */}
       {recommendation ? (
@@ -408,8 +410,8 @@ function ManageTasks() {
         </div>
       )}
 
-      {/* Divider */}
-      <div className="flowzen-divider" />
+      {/* Divider — only show when there are tasks */}
+      {tasks.length > 0 && <div className="flowzen-divider" />}
 
       {/* ALL TASKS Section */}
       <div className="flowzen-section">
