@@ -237,7 +237,7 @@ const server = new McpServer(
   },
   {
     description:
-      "Display the Flowzen task board with an AI-powered recommendation. Call this when the user asks 'what should I do?', 'where do I start?', 'I have too many tasks', 'help me prioritise', 'I'm feeling tired/on fire/getting by', or wants to add/complete/rename/delete tasks. Pass `mood` to personalise the recommendation. Pass `actions` to mutate tasks. IMPORTANT: The widget UI already contains a built-in mood selector — do NOT ask the user about their energy or mood in the chat. Simply call this tool without mood, or with mood if the user explicitly stated it in their message. Never ask a follow-up question about mood — let the widget handle it.",
+      "Display the Flowzen task board with an AI-powered recommendation. Call this when the user asks 'what should I do?', 'where do I start?', 'I have too many tasks', 'help me prioritise', 'I'm feeling tired/on fire/getting by', or wants to add/complete/rename/delete tasks. Pass `mood` to personalise the recommendation. Pass `actions` to mutate tasks. IMPORTANT: The widget UI already contains a built-in mood selector — do NOT ask the user about their energy or mood in the chat. Simply call this tool without mood, or with mood if the user explicitly stated it in their message. Never ask a follow-up question about mood — let the widget handle it. RESPONSE FORMAT: After calling this tool your text reply must be ONE short sentence only (e.g. 'Your Flowzen board is open.'). Do NOT list tasks, recommendations, reasons, focus tips, or rewards — they are ALL already shown interactively in the widget above. Repeating them clutters the UI.",
     inputSchema: {
       actions: z
         .array(ActionSchema)
@@ -418,8 +418,8 @@ const server = new McpServer(
     const done = tasks.filter((t) => t.completed).length;
 
     const summaryText = recommendation
-      ? `Flowzen recommends: "${recommendation.title}" (${recommendation.priority} priority). ${active} active, ${done} done. Time window: ${timeCtx.label}. Mood: ${effectiveMood}.`
-      : `All tasks complete! ${done} done. Time window: ${timeCtx.label}. Mood: ${effectiveMood}.`;
+      ? `Your Flowzen board is open.`
+      : `Your Flowzen board is open. All tasks complete!`;
 
     return {
       structuredContent: {

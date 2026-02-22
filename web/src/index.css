@@ -231,6 +231,13 @@ body {
   flex-shrink: 0;
 }
 
+.mood-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
 .mood-label {
   font-family: "Poppins", Arial, sans-serif;
   font-size: 0.6875rem;

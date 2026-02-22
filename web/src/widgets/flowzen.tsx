@@ -96,13 +96,11 @@ function ManageTasks() {
 
   const outputData = output as FlowzenOutput | null;
 
-  // Sync widgetState + flowzenData on initial load only (when no local state exists yet).
-  // After first load, syncWithServer handles all updates directly to avoid infinite loops
-  // caused by setWidgetState triggering Skybridge output changes → useEffect re-fires.
+  // Sync flowzenData when output changes.
+  // NOTE: Do NOT call setWidgetState here — it causes Skybridge to update the output
+  // reference, which re-fires this effect endlessly (React error #185).
+  // tasks are derived directly from outputData as fallback (see line below).
   useEffect(() => {
-    if (outputData?.tasks && !widgetState?.tasks) {
-      setWidgetState(() => ({ tasks: outputData.tasks }));
-    }
     if (outputData?.recommendation !== undefined && flowzenData === null) {
       setFlowzenData({
         recommendation: outputData.recommendation,
@@ -334,8 +332,10 @@ function ManageTasks() {
               aria-pressed={mood === m.value}
             >
               <span className="mood-emoji">{m.emoji}</span>
-              <span className="mood-label">{m.label}</span>
-              <span className="mood-sub">{m.sub}</span>
+              <span className="mood-text-group">
+                <span className="mood-label">{m.label}</span>
+                <span className="mood-sub">{m.sub}</span>
+              </span>
             </button>
           ))}
         </div>
