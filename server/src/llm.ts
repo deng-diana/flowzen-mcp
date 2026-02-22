@@ -26,6 +26,7 @@ interface TaskContext {
   id: string;
   title: string;
   priority: string;
+  difficulty: string;
   dueDate: string | null;
 }
 
@@ -75,7 +76,12 @@ export async function callClaudeForRecommendation(
 - Tasks: ${JSON.stringify(context.tasks, null, 2)}${insightLines.length > 0 ? "\n" + insightLines.join("\n") : ""}${excludeNote}
 
 Your job:
-1. Recommend ONE task from the list the user should do right now (or null if mood is tired and all tasks are high priority).${context.excludedTaskIds?.length ? " Avoid excluded task IDs." : ""}
+1. Recommend ONE task from the list the user should do right now.
+   MOOD is the PRIMARY driver — always pick a different task for different moods:
+   - mood "great": must pick a HIGH priority task (or MEDIUM if no HIGH exists). Prefer "hard" difficulty. This user has energy — give them the hardest thing on the list.
+   - mood "okay": pick a MEDIUM priority task. Prefer "medium" difficulty. Steady progress.
+   - mood "tired": pick a LOW priority or "easy" difficulty task ONLY. Never HIGH priority or "hard" difficulty when tired.
+   The time window gives context but NEVER overrides mood for task selection.${context.excludedTaskIds?.length ? " Also avoid excluded task IDs." : ""}
 2. Explain WHY in 2-3 warm sentences — reference neuroscience or positive psychology.
 3. Add ONE warm, caring reward suggestion with an emoji — something the user would genuinely enjoy and feel good about (e.g. calling a friend, listening to a favourite song, going for a walk, watching an episode guilt-free). Write it as if you care about their happiness, not just their productivity. Be specific and human.
 4. Provide 1-2 focus_tips: ultra-specific, actionable suggestions tailored to the task and mood. Examples: "Put your phone face-down across the room before you start", "Open only the ONE tab you need — close everything else", "Set a 25-min timer so your brain knows there's a finish line", "Play lo-fi or ambient music at low volume — lyrics distract, rhythm focuses", "If your mind wanders, write the distraction down and return — don't fight it". Avoid generic advice like "focus" or "take breaks". Be concrete.

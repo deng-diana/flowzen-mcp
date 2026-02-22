@@ -467,6 +467,7 @@ const server = new McpServer(
           id: t.id,
           title: (t as Task).title,
           priority: (t as Task).priority,
+          difficulty: (t as Task).difficulty,
           dueDate: (t as Task).dueDate,
         })),
         userInsights,
