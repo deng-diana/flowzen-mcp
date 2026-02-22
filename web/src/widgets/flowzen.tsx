@@ -458,13 +458,13 @@ function ManageTasks() {
             </>
           )}
         </div>
-      ) : tasks.length === 0 ? null : (
+      ) : activeTasks.length === 0 ? (
         <div className="recommendation-section">
           <div className="rec-card rec-card--empty">
             <div className="rec-task-title">All tasks complete! 🎉</div>
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* Celebration Toast */}
       {celebration && (

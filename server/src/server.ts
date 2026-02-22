@@ -429,9 +429,9 @@ const server = new McpServer(
       content: [
         {
           type: "text",
-          text: recommendation
-            ? `✓ Flowzen widget is open. Do not add any text — the widget shows everything.`
-            : `✓ Flowzen widget is open. All tasks complete! Do not add any text.`,
+          text: active === 0
+            ? `✓ Flowzen widget is open. All tasks complete! Do not add any text.`
+            : `✓ Flowzen widget is open. Do not add any text — the widget shows everything.`,
         },
       ],
     };
