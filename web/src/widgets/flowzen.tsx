@@ -302,7 +302,14 @@ function ManageTasks() {
     setAcceptedTaskId(recommendation.id);
     syncWithServer({ acceptRecommendationId: recommendation.id, mood });
   };
-  const activeTasks = tasks.filter((t) => !t.completed);
+  // Recommended task always shown first in the active list
+  const activeTasks = tasks
+    .filter((t) => !t.completed)
+    .sort((a, b) => {
+      if (recommendation?.id === a.id) return -1;
+      if (recommendation?.id === b.id) return 1;
+      return 0;
+    });
   const doneTasks = tasks.filter((t) => t.completed);
 
   const reasonBullets = reason ? parseReasonBullets(reason) : [];
