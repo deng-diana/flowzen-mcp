@@ -18,7 +18,7 @@ body {
 /* ── Brand Tokens ──────────────────────────────────────────────────────────
    Background: #FFE9D7  (warm peach brand canvas)
    Surface:    #ffffff  (content cards, pure white)
-   Accent:     #d97757  (orange — CTA, priority high, brand)
+   Accent:     #FF7148  (orange — CTA, priority high, brand)
    Blue:       #6a9bcc  (secondary accent, focus tips)
    Green:      #788c5d  (tertiary, low priority, reward)
    Text:       #2d2926  (rich warm dark — more readable on peach)
@@ -54,7 +54,7 @@ body {
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(217, 119, 87, 0.2);
+  border-bottom: 1px solid rgba(255, 113, 72, 0.2);
 }
 
 .flowzen-header-right {
@@ -67,7 +67,7 @@ body {
 .flowzen-expand-btn {
   width: 1.625rem;
   height: 1.625rem;
-  border: 1px solid rgba(217, 119, 87, 0.25);
+  border: 1px solid rgba(255, 113, 72, 0.25);
   border-radius: 0.4rem;
   background: rgba(255, 255, 255, 0.7);
   color: #9b9086;
@@ -83,15 +83,15 @@ body {
 }
 
 .flowzen-expand-btn:hover {
-  border-color: #d97757;
-  color: #d97757;
-  background: rgba(217, 119, 87, 0.08);
+  border-color: #FF7148;
+  color: #FF7148;
+  background: rgba(255, 113, 72, 0.08);
 }
 
 .flowzen-expand-btn.active {
-  border-color: #d97757;
-  color: #d97757;
-  background: rgba(217, 119, 87, 0.1);
+  border-color: #FF7148;
+  color: #FF7148;
+  background: rgba(255, 113, 72, 0.1);
 }
 
 .flowzen-brand {
@@ -111,7 +111,7 @@ body {
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #d97757;
+  color: #1a1a1a;
   line-height: 1.15;
 }
 
@@ -130,9 +130,9 @@ body {
   font-weight: 600;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  background: rgba(217, 119, 87, 0.12);
-  color: #d97757;
-  border: 1px solid rgba(217, 119, 87, 0.28);
+  background: rgba(255, 113, 72, 0.12);
+  color: #FF7148;
+  border: 1px solid rgba(255, 113, 72, 0.28);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -160,8 +160,8 @@ body {
   font-size: 0.5625rem;
   padding: 0.125rem 0.5rem;
   border-radius: 9999px;
-  background: rgba(217, 119, 87, 0.12);
-  color: #d97757;
+  background: rgba(255, 113, 72, 0.12);
+  color: #FF7148;
   text-transform: none;
   letter-spacing: 0;
   font-weight: 600;
@@ -173,7 +173,7 @@ body {
   border-radius: 16px;
   padding: 1.125rem 1rem 1rem;
   margin-bottom: 1.125rem;
-  box-shadow: 0 2px 12px rgba(217, 119, 87, 0.08);
+  box-shadow: 0 2px 12px rgba(255, 113, 72, 0.08);
 }
 
 .mood-card-label {
@@ -199,7 +199,7 @@ body {
   align-items: center;
   gap: 0.3rem;
   padding: 0.75rem 0.5rem;
-  border: 1.5px solid rgba(217, 119, 87, 0.18);
+  border: 1.5px solid rgba(255, 113, 72, 0.18);
   border-radius: 0.875rem;
   background: #ffffff;
   color: #2d2926;
@@ -211,17 +211,17 @@ body {
 
 .mood-btn:hover {
   opacity: 0.82;
-  border-color: rgba(217, 119, 87, 0.5);
+  border-color: rgba(255, 113, 72, 0.5);
   background: #fff;
   transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(217, 119, 87, 0.12);
+  box-shadow: 0 3px 10px rgba(255, 113, 72, 0.12);
 }
 
 .mood-btn.active {
   opacity: 1;
-  border-color: #d97757;
+  border-color: #FF7148;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.14), 0 3px 12px rgba(217, 119, 87, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 113, 72, 0.14), 0 3px 12px rgba(255, 113, 72, 0.15);
   transform: translateY(-1px);
 }
 
@@ -270,7 +270,7 @@ body {
   font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: #d97757;
+  color: #FF7148;
   text-transform: uppercase;
 }
 
@@ -278,12 +278,12 @@ body {
 .try-another-btn {
   margin-left: auto;
   background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(217, 119, 87, 0.3);
+  border: 1px solid rgba(255, 113, 72, 0.3);
   cursor: pointer;
   font-family: "Poppins", Arial, sans-serif;
   font-size: 0.625rem;
   font-weight: 600;
-  color: #d97757;
+  color: #FF7148;
   letter-spacing: 0.03em;
   padding: 0.25rem 0.7rem;
   border-radius: 9999px;
@@ -299,28 +299,28 @@ body {
 }
 
 .try-another-btn:hover {
-  background: #d97757;
+  background: #FF7148;
   color: #fff;
-  border-color: #d97757;
+  border-color: #FF7148;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(217, 119, 87, 0.25);
+  box-shadow: 0 2px 8px rgba(255, 113, 72, 0.25);
 }
 
 @keyframes rec-shimmer {
-  0%, 100% { box-shadow: 0 2px 16px rgba(217, 119, 87, 0.1); }
-  50%       { box-shadow: 0 4px 24px rgba(217, 119, 87, 0.2); }
+  0%, 100% { box-shadow: 0 2px 16px rgba(255, 113, 72, 0.1); }
+  50%       { box-shadow: 0 4px 24px rgba(255, 113, 72, 0.2); }
 }
 
 .rec-card {
   background: #ffffff;
-  border: 1.5px solid rgba(217, 119, 87, 0.25);
+  border: 1.5px solid rgba(255, 113, 72, 0.25);
   border-radius: 1rem;
   padding: 1rem 1.125rem 0.875rem;
   margin-bottom: 0.625rem;
   position: relative;
   overflow: hidden;
   animation: rec-shimmer 3.5s ease-in-out infinite;
-  box-shadow: 0 2px 16px rgba(217, 119, 87, 0.1);
+  box-shadow: 0 2px 16px rgba(255, 113, 72, 0.1);
 }
 
 .rec-card::before {
@@ -330,7 +330,7 @@ body {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #d97757 0%, #e8a07a 60%, #f0c4a8 100%);
+  background: linear-gradient(90deg, #FF7148 0%, #e8a07a 60%, #f0c4a8 100%);
   border-radius: 1rem 1rem 0 0;
 }
 
@@ -521,7 +521,7 @@ body {
 /* ── Divider ── */
 .flowzen-divider {
   height: 1px;
-  background: rgba(217, 119, 87, 0.15);
+  background: rgba(255, 113, 72, 0.15);
   margin: 1rem 0;
 }
 
@@ -542,7 +542,7 @@ body {
   line-height: 1.6;
   background: #ffffff;
   border-radius: 0.875rem;
-  border: 1px dashed rgba(217, 119, 87, 0.2);
+  border: 1px dashed rgba(255, 113, 72, 0.2);
 }
 
 .flowzen-task-item {
@@ -552,20 +552,20 @@ body {
   padding: 0.5625rem 0.75rem;
   border-radius: 0.75rem;
   background: #ffffff;
-  border: 1px solid rgba(217, 119, 87, 0.12);
+  border: 1px solid rgba(255, 113, 72, 0.12);
   transition: all 0.15s;
   position: relative;
 }
 
 .flowzen-task-item:hover {
-  border-color: rgba(217, 119, 87, 0.3);
-  box-shadow: 0 2px 8px rgba(217, 119, 87, 0.08);
+  border-color: rgba(255, 113, 72, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 113, 72, 0.08);
 }
 
 .flowzen-task-item.recommended {
   background: #fff;
-  border: 1.5px solid #d97757;
-  box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.1);
+  border: 1.5px solid #FF7148;
+  box-shadow: 0 0 0 3px rgba(255, 113, 72, 0.1);
 }
 
 .flowzen-task-item.done {
@@ -595,14 +595,14 @@ body {
 }
 
 .flowzen-checkbox:hover {
-  border-color: #d97757;
-  background: rgba(217, 119, 87, 0.06);
+  border-color: #FF7148;
+  background: rgba(255, 113, 72, 0.06);
 }
 
 .flowzen-checkbox.checked {
-  border-color: #d97757;
-  background: rgba(217, 119, 87, 0.1);
-  color: #d97757;
+  border-color: #FF7148;
+  background: rgba(255, 113, 72, 0.1);
+  color: #FF7148;
 }
 
 /* Task content */
@@ -657,9 +657,9 @@ body {
   font-size: 0.5rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #d97757;
-  background: rgba(217, 119, 87, 0.1);
-  border: 1px solid rgba(217, 119, 87, 0.3);
+  color: #FF7148;
+  background: rgba(255, 113, 72, 0.1);
+  border: 1px solid rgba(255, 113, 72, 0.3);
   border-radius: 9999px;
   padding: 0.1rem 0.45rem;
   flex-shrink: 0;
@@ -679,8 +679,8 @@ body {
 
 /* ── Inline Edit ── */
 .flowzen-task-item.editing {
-  border-color: #d97757;
-  box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.12);
+  border-color: #FF7148;
+  box-shadow: 0 0 0 3px rgba(255, 113, 72, 0.12);
   background: #fffaf7;
 }
 
@@ -695,7 +695,7 @@ body {
   line-height: 1.4;
   color: #2d2926;
   padding: 0;
-  caret-color: #d97757;
+  caret-color: #FF7148;
 }
 
 /* Subtle double-click affordance on hover */
@@ -706,7 +706,7 @@ body {
 .flowzen-task-title:hover {
   text-decoration-line: underline;
   text-decoration-style: dotted;
-  text-decoration-color: rgba(217, 119, 87, 0.4);
+  text-decoration-color: rgba(255, 113, 72, 0.4);
   text-underline-offset: 3px;
 }
 
@@ -752,8 +752,8 @@ body {
 
 .flowzen-delete-btn:hover {
   opacity: 1 !important;
-  background: rgba(217, 119, 87, 0.1);
-  color: #d97757;
+  background: rgba(255, 113, 72, 0.1);
+  color: #FF7148;
 }
 
 /* ── Loading Screen ── */
@@ -772,7 +772,7 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 2.5px solid rgba(217, 119, 87, 0.15);
+  border: 2.5px solid rgba(255, 113, 72, 0.15);
   position: relative;
   animation: loader-pulse 2s ease-in-out infinite;
 }
@@ -782,7 +782,7 @@ body {
   inset: -2.5px;
   border-radius: 50%;
   border: 2.5px solid transparent;
-  border-top-color: #d97757;
+  border-top-color: #FF7148;
   border-right-color: #e8a07a;
   animation: loader-spin 1s linear infinite;
 }
@@ -792,15 +792,15 @@ body {
 }
 
 @keyframes loader-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(217, 119, 87, 0.25); }
-  50%       { box-shadow: 0 0 0 10px rgba(217, 119, 87, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 113, 72, 0.25); }
+  50%       { box-shadow: 0 0 0 10px rgba(255, 113, 72, 0); }
 }
 
 .loading-brand {
   font-family: "Lora", Georgia, serif;
   font-size: 1.125rem;
   font-weight: 700;
-  color: #d97757;
+  color: #FF7148;
   animation: brand-fade 2s ease-in-out infinite;
 }
 
@@ -824,7 +824,7 @@ body {
 .add-input {
   width: 100%;
   padding: 0.625rem 1rem;
-  border: 1.5px solid rgba(217, 119, 87, 0.2);
+  border: 1.5px solid rgba(255, 113, 72, 0.2);
   border-radius: 0.75rem;
   font-size: 0.875rem;
   font-family: "Lora", Georgia, serif;
@@ -835,8 +835,8 @@ body {
 }
 
 .add-input:focus {
-  border-color: #d97757;
-  box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.12);
+  border-color: #FF7148;
+  box-shadow: 0 0 0 3px rgba(255, 113, 72, 0.12);
 }
 
 .add-input::placeholder {
@@ -859,7 +859,7 @@ body {
 
 .priority-chip {
   padding: 0.2rem 0.6rem;
-  border: 1px solid rgba(217, 119, 87, 0.18);
+  border: 1px solid rgba(255, 113, 72, 0.18);
   border-radius: 9999px;
   background: #ffffff;
   color: #2d2926;
@@ -874,7 +874,7 @@ body {
 
 .priority-chip:hover {
   opacity: 0.8;
-  border-color: rgba(217, 119, 87, 0.4);
+  border-color: rgba(255, 113, 72, 0.4);
 }
 
 .priority-chip.active {
@@ -885,7 +885,7 @@ body {
 
 .add-btn {
   padding: 0.35rem 1rem;
-  background: #d97757;
+  background: #FF7148;
   color: #fff;
   border: none;
   border-radius: 9999px;
@@ -902,7 +902,7 @@ body {
 
 .add-btn:hover {
   background: #c56644;
-  box-shadow: 0 2px 8px rgba(217, 119, 87, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 113, 72, 0.3);
 }
 
 .add-btn:active {
@@ -918,7 +918,7 @@ body {
   font-family: "Poppins", Arial, sans-serif;
   font-size: 0.625rem;
   font-weight: 600;
-  color: #d97757;
+  color: #FF7148;
   letter-spacing: 0.03em;
   padding: 0.2rem 0.5rem;
   border-radius: 9999px;
@@ -931,7 +931,7 @@ body {
 
 .add-task-inline-btn:hover {
   opacity: 1;
-  background: rgba(217, 119, 87, 0.1);
+  background: rgba(255, 113, 72, 0.1);
   box-shadow: none;
 }
 
@@ -943,18 +943,18 @@ body {
 
 .inline-add-form {
   background: #ffffff;
-  border: 1.5px solid rgba(217, 119, 87, 0.3);
+  border: 1.5px solid rgba(255, 113, 72, 0.3);
   border-radius: 0.875rem;
   padding: 0.75rem 0.875rem;
   margin-bottom: 0.5rem;
   animation: slideDown 0.18s ease-out;
-  box-shadow: 0 4px 16px rgba(217, 119, 87, 0.1);
+  box-shadow: 0 4px 16px rgba(255, 113, 72, 0.1);
 }
 
 .inline-add-form .add-input {
   margin-bottom: 0;
   border: none;
-  border-bottom: 1.5px solid rgba(217, 119, 87, 0.18);
+  border-bottom: 1.5px solid rgba(255, 113, 72, 0.18);
   border-radius: 0;
   padding: 0.25rem 0;
   font-size: 0.9375rem;
@@ -963,7 +963,7 @@ body {
 }
 
 .inline-add-form .add-input:focus {
-  border-bottom-color: #d97757;
+  border-bottom-color: #FF7148;
   box-shadow: none;
 }
 
@@ -990,8 +990,8 @@ body {
 }
 
 .add-cancel-btn:hover {
-  color: #d97757;
-  background: rgba(217, 119, 87, 0.08);
+  color: #FF7148;
+  background: rgba(255, 113, 72, 0.08);
 }
 
 /* ── Empty State ── */
@@ -1008,7 +1008,7 @@ body {
   text-align: center;
   background: #ffffff;
   border-radius: 1.125rem;
-  border: 1px dashed rgba(217, 119, 87, 0.25);
+  border: 1px dashed rgba(255, 113, 72, 0.25);
 }
 
 .empty-state-icon {
@@ -1036,7 +1036,7 @@ body {
 }
 
 .empty-cta-btn {
-  background: #d97757;
+  background: #FF7148;
   color: #ffffff;
   border: none;
   border-radius: 9999px;
@@ -1048,13 +1048,13 @@ body {
   cursor: pointer;
   transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
   margin-bottom: 1.375rem;
-  box-shadow: 0 3px 12px rgba(217, 119, 87, 0.28);
+  box-shadow: 0 3px 12px rgba(255, 113, 72, 0.28);
 }
 
 .empty-cta-btn:hover {
   background: #c56644;
   transform: translateY(-1px);
-  box-shadow: 0 5px 16px rgba(217, 119, 87, 0.35);
+  box-shadow: 0 5px 16px rgba(255, 113, 72, 0.35);
 }
 
 .empty-cta-btn:active {
@@ -1076,7 +1076,7 @@ body {
   align-items: center;
   gap: 0.25rem;
   padding: 0.75rem 0.375rem 0.625rem;
-  border: 1.5px solid rgba(217, 119, 87, 0.15);
+  border: 1.5px solid rgba(255, 113, 72, 0.15);
   border-radius: 1rem;
   background: #FFE9D7;
   cursor: pointer;
@@ -1086,16 +1086,16 @@ body {
 
 .empty-mood-btn:hover {
   opacity: 0.85;
-  border-color: rgba(217, 119, 87, 0.4);
+  border-color: rgba(255, 113, 72, 0.4);
   background: rgba(255, 255, 255, 0.7);
   transform: translateY(-1px);
 }
 
 .empty-mood-btn.active {
   opacity: 1;
-  border-color: #d97757;
+  border-color: #FF7148;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.13), 0 3px 12px rgba(217, 119, 87, 0.14);
+  box-shadow: 0 0 0 3px rgba(255, 113, 72, 0.13), 0 3px 12px rgba(255, 113, 72, 0.14);
   transform: translateY(-1px);
 }
 
@@ -1141,7 +1141,7 @@ body {
 
 .empty-template-chip {
   background: #FFE9D7;
-  border: 1px solid rgba(217, 119, 87, 0.2);
+  border: 1px solid rgba(255, 113, 72, 0.2);
   border-radius: 9999px;
   padding: 0.3rem 0.75rem;
   font-family: "Poppins", Arial, sans-serif;
@@ -1154,8 +1154,8 @@ body {
 }
 
 .empty-template-chip:hover {
-  background: rgba(217, 119, 87, 0.12);
-  border-color: rgba(217, 119, 87, 0.4);
+  background: rgba(255, 113, 72, 0.12);
+  border-color: rgba(255, 113, 72, 0.4);
   transform: translateY(-1px);
 }
 
@@ -1164,7 +1164,7 @@ body {
   width: 100%;
   margin-top: 0.625rem;
   padding: 0.6rem 1rem;
-  background: #d97757;
+  background: #FF7148;
   color: #ffffff;
   border: none;
   border-radius: 0.75rem;
@@ -1178,13 +1178,13 @@ body {
   justify-content: center;
   gap: 0.4rem;
   transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
-  box-shadow: 0 3px 12px rgba(217, 119, 87, 0.25);
+  box-shadow: 0 3px 12px rgba(255, 113, 72, 0.25);
 }
 
 .start-task-btn:hover {
   background: #c56644;
   transform: translateY(-1px);
-  box-shadow: 0 5px 18px rgba(217, 119, 87, 0.35);
+  box-shadow: 0 5px 18px rgba(255, 113, 72, 0.35);
 }
 
 .start-task-btn:active {
