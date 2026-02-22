@@ -85,9 +85,8 @@ function FlowzenLogo({ size = 36 }: { size?: number }) {
 function ManageTasks() {
   const { output, isPending } = useToolInfo<"flowzen">();
   const { callToolAsync } = useCallTool("flowzen");
-  const { theme, maxHeight } = useLayout();
-  // Always use light mode with custom brand background
-  const isDark = false; // Force light mode per design spec
+  const { maxHeight } = useLayout();
+
 
   const [mood, setMood] = useState<Mood>("okay");
   const [widgetState, setWidgetState] = useWidgetState<{ tasks: Task[] }>();
@@ -131,7 +130,7 @@ function ManageTasks() {
   const tasks = widgetState?.tasks ?? outputData?.tasks;
 
   if (isPending || tasks === undefined) {
-    return <LoadingScreen isDark={isDark} />;
+    return <LoadingScreen />;
   }
 
   const todoCount = tasks.filter((t) => !t.completed).length;

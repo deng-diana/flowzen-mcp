@@ -1,4 +1,4 @@
-export function LoadingScreen({ isDark }: { isDark: boolean }) {
+export function LoadingScreen() {
   return (
     <div className="loading-screen" style={{ borderRadius: 20, background: "#FFE9D7" }}>
       <div className="loader-ring">
