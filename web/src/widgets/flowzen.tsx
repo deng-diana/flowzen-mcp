@@ -96,20 +96,23 @@ function ManageTasks() {
 
   const outputData = output as FlowzenOutput | null;
 
-  // Sync widgetState + flowzenData when output changes
+  // Sync widgetState + flowzenData on initial load only (when no local state exists yet).
+  // After first load, syncWithServer handles all updates directly to avoid infinite loops
+  // caused by setWidgetState triggering Skybridge output changes → useEffect re-fires.
   useEffect(() => {
-    if (outputData?.tasks) {
+    if (outputData?.tasks && !widgetState?.tasks) {
       setWidgetState(() => ({ tasks: outputData.tasks }));
-      if (outputData.recommendation !== undefined) {
-        setFlowzenData({
-          recommendation: outputData.recommendation,
-          reason: outputData.reason,
-          reward: outputData.reward,
-          timeContext: outputData.timeContext,
-        });
-        setFocusTips(outputData.focusTips ?? []);
-      }
     }
+    if (outputData?.recommendation !== undefined && flowzenData === null) {
+      setFlowzenData({
+        recommendation: outputData.recommendation,
+        reason: outputData.reason,
+        reward: outputData.reward,
+        timeContext: outputData.timeContext,
+      });
+      setFocusTips(outputData.focusTips ?? []);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [output]);
 
   const tasks = widgetState?.tasks ?? outputData?.tasks ?? null;
