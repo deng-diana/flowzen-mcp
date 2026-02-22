@@ -1,7 +1,7 @@
 import { McpServer } from "skybridge/server";
 import { z } from "zod";
 import { env } from "./env.js";
-import { executeActions, fetchTasks } from "./supabase.js";
+import { executeActions, fetchTasks, supabase } from "./supabase.js";
 import { callClaudeForRecommendation } from "./llm.js";
 import { fetchUserInsights, logRecommendation, recordCompletion } from "./user-insights.js";
 
@@ -195,14 +195,14 @@ function getReward(mood: Mood, timeCtx: TimeContext): { emoji: string; text: str
 }
 
 const ActionSchema = z.object({
-  type: z.enum(["add", "delete", "toggle"]),
-  title: z.string().optional().describe("Task title (required for add)"),
+  type: z.enum(["add", "delete", "toggle", "rename"]),
+  title: z.string().optional().describe("Task title (required for add or rename)"),
   priority: z
     .enum(["low", "medium", "high"])
     .optional()
     .describe("Task priority"),
   dueDate: z.string().optional().describe("Due date (ISO string)"),
-  taskId: z.string().optional().describe("Task ID (required for delete/toggle)"),
+  taskId: z.string().optional().describe("Task ID (required for delete/toggle/rename)"),
 });
 
 const server = new McpServer(
@@ -266,7 +266,22 @@ const server = new McpServer(
     }
 
     if (actions && actions.length > 0) {
-      await executeActions(userId, actions);
+      // Handle rename separately (not in supabase.ts executeActions)
+      const renameActions = actions.filter((a) => a.type === "rename");
+      const otherActions = actions.filter((a) => a.type !== "rename");
+
+      await Promise.all([
+        otherActions.length > 0 ? executeActions(userId, otherActions as any) : Promise.resolve(),
+        ...renameActions.map((a) =>
+          a.taskId && a.title
+            ? supabase
+                .from("tasks")
+                .update({ title: a.title })
+                .eq("id", a.taskId)
+                .eq("user_id", userId)
+            : Promise.resolve()
+        ),
+      ]);
     }
 
     const [tasksResult, userInsights] = await Promise.all([

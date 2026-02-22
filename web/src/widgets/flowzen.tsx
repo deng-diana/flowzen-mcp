@@ -1,5 +1,5 @@
 import "@/index.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { mountWidget, useLayout, useWidgetState } from "skybridge/web";
 import { useToolInfo, useCallTool } from "../helpers";
 import { type Task } from "../components/types";
@@ -23,19 +23,84 @@ interface FlowzenOutput {
   timeContext: string;
 }
 
+/** Split a reason string into bullet points for cleaner display */
+function parseReasonBullets(reason: string): string[] {
+  // Try sentence-level split on ". " boundaries, keep each as a bullet
+  const sentences = reason
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 10);
+  // If we got 2+ sentences, use them as bullets; otherwise treat as one block
+  return sentences.length >= 2 ? sentences : [reason];
+}
+
+/** Shorten a focus tip to ≤ 10 words for minimal cognitive load */
+function shortenTip(tip: string): string {
+  // Strip emoji prefix if present
+  const clean = tip.replace(/^[^\w]+/, "").trim();
+  const words = clean.split(" ");
+  if (words.length <= 10) return clean;
+  return words.slice(0, 10).join(" ") + "…";
+}
+
+// Flowzen SVG Logo — orange circle with "Flo" + wavy "zen" stroke
+function FlowzenLogo({ size = 36 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 120 120"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ flexShrink: 0, borderRadius: "50%" }}
+    >
+      {/* Background circle */}
+      <circle cx="60" cy="60" r="60" fill="#d97757" />
+      {/* "Flo" text — bold serif */}
+      <text
+        x="60"
+        y="56"
+        textAnchor="middle"
+        fontSize="36"
+        fontFamily="Georgia, serif"
+        fontWeight="700"
+        fill="#ffffff"
+        letterSpacing="-1"
+      >
+        Flo
+      </text>
+      {/* Wavy "zen" stroke — represents flow/waves */}
+      <path
+        d="M30 75 Q38 65 46 75 Q54 85 62 75 Q70 65 78 75 Q86 85 94 75"
+        stroke="#ffffff"
+        strokeWidth="4.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+        opacity="0.85"
+      />
+    </svg>
+  );
+}
+
 function ManageTasks() {
   const { output, isPending } = useToolInfo<"flowzen">();
   const { callToolAsync } = useCallTool("flowzen");
   const { theme } = useLayout();
-  const isDark = theme === "dark";
+  // Always use light mode with custom brand background
+  const isDark = false; // Force light mode per design spec
 
   const [mood, setMood] = useState<Mood>("okay");
   const [widgetState, setWidgetState] = useWidgetState<{ tasks: Task[] }>();
   const [flowzenData, setFlowzenData] = useState<Omit<FlowzenOutput, "tasks"> | null>(null);
   const [focusTips, setFocusTips] = useState<string[]>([]);
-  const [reasonExpanded, setReasonExpanded] = useState(false);
   const [excludedIds, setExcludedIds] = useState<string[]>([]);
   const mutationCounter = useRef(0);
+
+  // Inline editing state
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState("");
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   const safeTasks = (prev: { tasks?: Task[] } | null | undefined): Task[] =>
     prev?.tasks ?? [];
@@ -57,13 +122,13 @@ function ManageTasks() {
     }
   }, [output]);
 
-  // Fall back to output directly if widgetState hasn't been hydrated yet
   const outputData = output as FlowzenOutput | undefined;
   const tasks = widgetState?.tasks ?? outputData?.tasks;
 
   if (isPending || tasks === undefined) {
     return <LoadingScreen isDark={isDark} />;
   }
+
   const todoCount = tasks.filter((t) => !t.completed).length;
   const doneCount = tasks.filter((t) => t.completed).length;
 
@@ -87,13 +152,15 @@ function ManageTasks() {
 
   const handleMoodChange = (newMood: Mood) => {
     setMood(newMood);
+    // Reset excluded IDs when mood changes — fresh recommendation
     setExcludedIds([]);
     syncWithServer({ mood: newMood });
   };
 
   const handleTryAnother = () => {
-    if (!recommendation) return;
-    const newExcluded = [...excludedIds, recommendation.id];
+    const currentRec = recommendation;
+    if (!currentRec) return;
+    const newExcluded = [...excludedIds, currentRec.id];
     setExcludedIds(newExcluded);
     syncWithServer({ excludedTaskIds: newExcluded, mood });
   };
@@ -131,6 +198,44 @@ function ManageTasks() {
     syncWithServer({ actions: [{ type: "delete", taskId }], mood });
   };
 
+  const handleDoubleClick = (task: Task) => {
+    if (task.completed) return; // Don't allow editing completed tasks
+    setEditingTaskId(task.id);
+    setEditingValue(task.title);
+    // Focus the input after render
+    setTimeout(() => {
+      editInputRef.current?.focus();
+      editInputRef.current?.select();
+    }, 0);
+  };
+
+  const handleEditSave = useCallback((taskId: string) => {
+    const trimmed = editingValue.trim();
+    setEditingTaskId(null);
+    if (!trimmed) return; // Empty → discard
+    // Optimistic update
+    setWidgetState((prev) => ({
+      tasks: safeTasks(prev).map((t) =>
+        t.id === taskId ? { ...t, title: trimmed } : t
+      ),
+    }));
+    syncWithServer({ actions: [{ type: "rename", taskId, title: trimmed }], mood });
+  }, [editingValue, mood]);
+
+  const handleEditCancel = () => {
+    setEditingTaskId(null);
+    setEditingValue("");
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, taskId: string) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleEditSave(taskId);
+    } else if (e.key === "Escape") {
+      handleEditCancel();
+    }
+  };
+
   const recommendation = flowzenData?.recommendation ?? outputData?.recommendation ?? null;
   const reason = flowzenData?.reason ?? outputData?.reason ?? "";
   const reward = flowzenData?.reward ?? outputData?.reward;
@@ -140,7 +245,8 @@ function ManageTasks() {
   const activeTasks = tasks.filter((t) => !t.completed);
   const doneTasks = tasks.filter((t) => t.completed);
 
-  // Anthropic brand accent colors: orange · blue · green
+  const reasonBullets = reason ? parseReasonBullets(reason) : [];
+
   const PRIORITY_COLORS: Record<string, string> = {
     high: "#d97757",
     medium: "#6a9bcc",
@@ -149,13 +255,13 @@ function ManageTasks() {
 
   return (
     <div
-      className={`flowzen-container ${isDark ? "dark" : "light"}`}
+      className="flowzen-container light"
       data-llm={`Mood: ${mood}. Recommendation: ${recommendation?.title ?? "none"}. ${todoCount} active tasks, ${doneCount} done. Time: ${timeContext}.`}
     >
       {/* Header */}
       <div className="flowzen-header">
         <div className="flowzen-brand">
-          <span className="flowzen-wave">🌊</span>
+          <FlowzenLogo size={36} />
           <div className="flowzen-brand-text">
             <span className="flowzen-title">Flowzen</span>
             <span className="flowzen-tagline">Your cognitive compass</span>
@@ -168,7 +274,7 @@ function ManageTasks() {
 
       {/* Mood Selector */}
       <div className="flowzen-section">
-        <div className="flowzen-section-label">How are you feeling?</div>
+        <div className="flowzen-section-label">HOW ARE YOU FEELING?</div>
         <div className="mood-selector">
           {MOOD_OPTIONS.map((m) => (
             <button
@@ -191,7 +297,7 @@ function ManageTasks() {
             <span className="rec-icon">⚡</span>
             <span className="rec-title">DO THIS NOW</span>
             <button className="try-another-btn" onClick={handleTryAnother}>
-              Try another →
+              Show me another
             </button>
           </div>
           <div className="rec-card">
@@ -199,27 +305,42 @@ function ManageTasks() {
             <div className="rec-task-meta">
               <span
                 className="rec-priority-badge"
-                style={{ background: `${PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5"}22`, color: PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5" }}
+                style={{
+                  background: `${PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5"}18`,
+                  color: PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5",
+                  border: `1px solid ${PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5"}40`,
+                }}
               >
-                {recommendation.priority} priority
+                {recommendation.priority === "high" ? "HIGH PRIORITY" : recommendation.priority === "medium" ? "MED PRIORITY" : "LOW PRIORITY"}
               </span>
             </div>
           </div>
-          {reason && (
+
+          {/* Why this task — always expanded, bullet point format */}
+          {reasonBullets.length > 0 && (
             <div className="rec-reason-wrapper">
-              <button
-                className="rec-reason-toggle"
-                onClick={() => setReasonExpanded((v) => !v)}
-              >
+              <div className="rec-reason-header">
                 <span className="rec-reason-icon">🧠</span>
-                <span className="rec-reason-toggle-text">Why this task?</span>
-                <span className="rec-reason-chevron">{reasonExpanded ? "▲" : "▼"}</span>
-              </button>
-              {reasonExpanded && (
-                <div className="rec-reason">
-                  <span className="rec-reason-text">{reason}</span>
-                </div>
-              )}
+                <span className="rec-reason-label">Why this task?</span>
+              </div>
+              <div className="rec-reason">
+                {reasonBullets.map((bullet, i) => (
+                  <div key={i} className="rec-reason-bullet">
+                    <span className="rec-reason-dot">·</span>
+                    <span
+                      className="rec-reason-text"
+                      dangerouslySetInnerHTML={{
+                        __html: bullet
+                          // Bold key neuro terms
+                          .replace(/(cortisol|prefrontal cortex|dopamine|serotonin|BDNF|cognitive|melatonin|focus window|energy peak)/gi,
+                            "<strong>$1</strong>")
+                          // Bold time expressions like "It's 10:30"
+                          .replace(/(It's \d+:\d+)/g, "<strong>$1</strong>"),
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -228,33 +349,16 @@ function ManageTasks() {
           <div className="rec-card rec-card--empty">
             <div className="rec-task-title">All tasks complete! 🎉</div>
           </div>
-          {reason && (
-            <div className="rec-reason-wrapper">
-              <button
-                className="rec-reason-toggle"
-                onClick={() => setReasonExpanded((v) => !v)}
-              >
-                <span className="rec-reason-icon">🧠</span>
-                <span className="rec-reason-toggle-text">Why this task?</span>
-                <span className="rec-reason-chevron">{reasonExpanded ? "▲" : "▼"}</span>
-              </button>
-              {reasonExpanded && (
-                <div className="rec-reason">
-                  <span className="rec-reason-text">{reason}</span>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )}
 
-      {/* Focus Tips */}
+      {/* Focus Tips — shortened, minimal */}
       {effectiveFocusTips.length > 0 && recommendation && (
         <div className="focus-tips-section">
-          {effectiveFocusTips.map((tip, i) => (
+          {effectiveFocusTips.slice(0, 2).map((tip, i) => (
             <div key={i} className="focus-tip">
               <span className="focus-tip-icon">💡</span>
-              <span className="focus-tip-text">{tip}</span>
+              <span className="focus-tip-text">{shortenTip(tip)}</span>
             </div>
           ))}
         </div>
@@ -264,8 +368,8 @@ function ManageTasks() {
       {reward && recommendation && (
         <div className="reward-section">
           <div className="reward-header">
-            <span className="reward-icon">😌</span>
-            <span className="reward-title">AFTER THIS, YOU DESERVE:</span>
+            <span className="reward-icon">🎁</span>
+            <span className="reward-title">YOU DESERVE</span>
           </div>
           <div className="reward-card">
             <span className="reward-emoji">{reward.emoji}</span>
@@ -283,49 +387,88 @@ function ManageTasks() {
       {/* Task List */}
       <div className="flowzen-section">
         <div className="flowzen-section-label">
-          📋 ALL TASKS
+          ALL TASKS
           <span className="task-count-badge">{activeTasks.length} active</span>
         </div>
 
         {tasks.length === 0 ? (
           <div className="flowzen-empty">
-            No tasks yet — add one above to get your first recommendation.
+            No tasks yet — add one above to get started.
           </div>
         ) : (
           <div className="flowzen-task-list">
             {activeTasks.map((task) => {
               const isRecommended = recommendation?.id === task.id;
+              const isEditing = editingTaskId === task.id;
               return (
                 <div
                   key={task.id}
-                  className={`flowzen-task-item ${isRecommended ? "recommended" : ""}`}
+                  className={`flowzen-task-item ${isRecommended ? "recommended" : ""} ${isEditing ? "editing" : ""}`}
                 >
-                  <button
-                    className="flowzen-checkbox"
-                    onClick={() => handleToggle(task.id)}
-                    aria-label="Mark complete"
-                  />
+                  {/* Hide checkbox while editing to reduce distraction */}
+                  {!isEditing && (
+                    <button
+                      className="flowzen-checkbox"
+                      onClick={() => handleToggle(task.id)}
+                      aria-label="Mark complete"
+                    />
+                  )}
+
                   <div className="flowzen-task-content">
-                    <span className="flowzen-task-title">{task.title}</span>
-                    <div className="flowzen-task-meta">
-                      <span
-                        className="flowzen-priority-dot"
-                        style={{ background: PRIORITY_COLORS[task.priority] ?? "#b0aea5" }}
-                        title={`${task.priority} priority`}
+                    {isEditing ? (
+                      /* ── Inline Edit Input ── */
+                      <input
+                        ref={editInputRef}
+                        className="flowzen-task-edit-input"
+                        value={editingValue}
+                        onChange={(e) => setEditingValue(e.target.value)}
+                        onKeyDown={(e) => handleEditKeyDown(e, task.id)}
+                        onBlur={() => handleEditSave(task.id)}
+                        maxLength={120}
+                        aria-label="Edit task title"
                       />
-                      <span className="flowzen-priority-label" style={{ color: PRIORITY_COLORS[task.priority] ?? "#b0aea5" }}>
-                        {task.priority}
+                    ) : (
+                      /* ── Normal Title — double click to edit ── */
+                      <span
+                        className="flowzen-task-title"
+                        onDoubleClick={() => handleDoubleClick(task)}
+                        title="Double-click to edit"
+                      >
+                        {task.title}
                       </span>
-                    </div>
+                    )}
+
+                    {!isEditing && (
+                      <div className="flowzen-task-meta">
+                        <span
+                          className="flowzen-priority-dot"
+                          style={{ background: PRIORITY_COLORS[task.priority] ?? "#b0aea5" }}
+                          title={`${task.priority} priority`}
+                        />
+                        <span className="flowzen-priority-label" style={{ color: PRIORITY_COLORS[task.priority] ?? "#b0aea5" }}>
+                          {task.priority}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  {isRecommended && <span className="now-badge">NOW</span>}
-                  <button
-                    className="flowzen-delete-btn"
-                    onClick={() => handleDelete(task.id)}
-                    aria-label="Delete task"
-                  >
-                    ×
-                  </button>
+
+                  {/* Editing: show Save/Cancel hint; Normal: show NOW badge + delete */}
+                  {isEditing ? (
+                    <div className="flowzen-edit-actions">
+                      <span className="flowzen-edit-hint">↵ save · esc cancel</span>
+                    </div>
+                  ) : (
+                    <>
+                      {isRecommended && <span className="now-badge">NOW</span>}
+                      <button
+                        className="flowzen-delete-btn"
+                        onClick={() => handleDelete(task.id)}
+                        aria-label="Delete task"
+                      >
+                        ×
+                      </button>
+                    </>
+                  )}
                 </div>
               );
             })}
