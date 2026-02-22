@@ -302,10 +302,10 @@ function ManageTasks() {
         )}
       </div>
 
-      {/* Mood Selector — only show when there are tasks */}
+      {/* Mood Selector — only show when there are tasks, wrapped in card */}
       {tasks.length > 0 && (
-        <div className="flowzen-section">
-          <div className="flowzen-section-label">HOW ARE YOU FEELING?</div>
+        <div className="mood-card">
+          <div className="mood-card-label">HOW ARE YOU FEELING?</div>
           <div className="mood-selector">
             {MOOD_OPTIONS.map((m) => (
               <button

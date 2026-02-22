@@ -30,8 +30,7 @@ body {
 .flowzen-container {
   width: 100%;
   max-width: 100%;
-  min-height: 100vh;
-  padding: 1.5rem 1.25rem 3rem;
+  padding: 1.5rem 1.25rem 2rem;
   font-size: 14px;
   line-height: 1.6;
   letter-spacing: -0.003em;
@@ -122,6 +121,25 @@ body {
   text-transform: none;
   letter-spacing: 0;
   font-weight: 600;
+}
+
+/* ── Mood Card (wraps mood selector in a white card) ── */
+.mood-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.125rem 1rem 1rem;
+  margin-bottom: 1.125rem;
+  box-shadow: 0 2px 12px rgba(217, 119, 87, 0.08);
+}
+
+.mood-card-label {
+  font-family: "Poppins", Arial, sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #9b9086;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
 }
 
 /* ── Mood Selector ── */
