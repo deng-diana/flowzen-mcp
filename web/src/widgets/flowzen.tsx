@@ -132,7 +132,7 @@ function ManageTasks() {
     }
   };
 
-  const showCelebration = (taskTitle: string) => {
+  const showCelebration = (_taskTitle?: string) => {
     if (celebrationTimerRef.current) clearTimeout(celebrationTimerRef.current);
     const msg = CELEBRATION_MESSAGES[Math.floor(Math.random() * CELEBRATION_MESSAGES.length)];
     setCelebration(msg);
