@@ -1,6 +1,6 @@
 import "@/index.css";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { mountWidget, useLayout, useWidgetState } from "skybridge/web";
+import { mountWidget, useLayout, useWidgetState, useDisplayMode } from "skybridge/web";
 import { useToolInfo, useCallTool } from "../helpers";
 import { type Task } from "../components/types";
 import { LoadingScreen } from "../components/LoadingScreen";
@@ -61,6 +61,7 @@ function ManageTasks() {
   const { output, isPending } = useToolInfo<"flowzen">();
   const { callToolAsync } = useCallTool("flowzen");
   const { maxHeight } = useLayout();
+  const [displayMode, setDisplayMode] = useDisplayMode();
 
 
   const [mood, setMood] = useState<Mood>("okay");
@@ -256,10 +257,12 @@ function ManageTasks() {
     low: "#788c5d",
   };
 
+  const isFullscreen = displayMode === "fullscreen";
+
   return (
     <div
-      className="flowzen-container light"
-      style={{ maxHeight: maxHeight ?? 600 }}
+      className={`flowzen-container light${isFullscreen ? " fullscreen" : ""}`}
+      style={isFullscreen ? { maxHeight: maxHeight, overflowY: "auto" } : { maxHeight: maxHeight ?? 600 }}
       data-llm={`Mood: ${mood}. Recommendation: ${recommendation?.title ?? "none"}. ${todoCount} active tasks, ${doneCount} done. Time: ${timeContext}.`}
     >
       {/* Header */}
@@ -271,9 +274,19 @@ function ManageTasks() {
             <span className="flowzen-tagline">Do the right thing, right now.</span>
           </div>
         </div>
-        {timeContext && (
-          <span className="flowzen-time-badge">{timeContext}</span>
-        )}
+        <div className="flowzen-header-right">
+          {timeContext && (
+            <span className="flowzen-time-badge">{timeContext}</span>
+          )}
+          <button
+            className={`flowzen-expand-btn${isFullscreen ? " active" : ""}`}
+            onClick={() => setDisplayMode(isFullscreen ? "inline" : "fullscreen")}
+            aria-label={isFullscreen ? "收起" : "全屏展开"}
+            title={isFullscreen ? "收起" : "全屏展开"}
+          >
+            {isFullscreen ? "⊠" : "⊞"}
+          </button>
+        </div>
       </div>
 
       {/* Mood Selector — always visible */}
