@@ -285,7 +285,7 @@ function ManageTasks() {
   return (
     <div
       className="flowzen-container light"
-      style={{ maxHeight: maxHeight ?? 560, overflow: "hidden" }}
+      style={{ maxHeight: maxHeight ?? undefined }}
       data-llm={`Mood: ${mood}. Recommendation: ${recommendation?.title ?? "none"}. ${todoCount} active tasks, ${doneCount} done. Time: ${timeContext}.`}
     >
       {/* Header */}
@@ -302,9 +302,8 @@ function ManageTasks() {
         )}
       </div>
 
-      {/* Mood Selector — only show when there are tasks, wrapped in card */}
-      {tasks.length > 0 && (
-        <div className="mood-card">
+      {/* Mood Selector — always visible */}
+      <div className="mood-card">
           <div className="mood-card-label">HOW ARE YOU FEELING?</div>
           <div className="mood-selector">
             {MOOD_OPTIONS.map((m) => (
@@ -321,7 +320,6 @@ function ManageTasks() {
             ))}
           </div>
         </div>
-      )}
 
       {/* Recommendation Card */}
       {recommendation ? (
@@ -411,8 +409,8 @@ function ManageTasks() {
         </div>
       )}
 
-      {/* Divider — only show when there are tasks */}
-      {tasks.length > 0 && <div className="flowzen-divider" />}
+      {/* Divider */}
+      <div className="flowzen-divider" />
 
       {/* ALL TASKS Section */}
       <div className="flowzen-section">
@@ -478,26 +476,7 @@ function ManageTasks() {
         {tasks.length === 0 && !isAddOpen ? (
           <div className="flowzen-empty-state">
             <div className="empty-state-icon">🌊</div>
-            <div className="empty-state-heading">What's on your mind today?</div>
-            <div className="empty-state-sub">First — how are you feeling right now?</div>
-
-            {/* Mood picker inside empty state */}
-            <div className="empty-mood-picker">
-              {MOOD_OPTIONS.map((m) => (
-                <button
-                  key={m.value}
-                  className={`empty-mood-btn ${mood === m.value ? "active" : ""}`}
-                  onClick={() => handleMoodChange(m.value)}
-                  aria-pressed={mood === m.value}
-                >
-                  <span className="empty-mood-emoji">{m.emoji}</span>
-                  <span className="empty-mood-label">{m.label}</span>
-                  <span className="empty-mood-sub">{m.sub}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Primary CTA — opens inline add form */}
+            <div className="empty-state-heading">What's on your plate today?</div>
             <button className="empty-cta-btn" onClick={openAddForm}>
               + Add your first task
             </button>
