@@ -85,6 +85,15 @@ function ManageTasks() {
   const safeTasks = (prev: { tasks?: Task[] } | null | undefined): Task[] =>
     prev?.tasks ?? [];
 
+  // Auto-fetch on mount if widget has no data yet (cold open — Claude hasn't called the tool yet)
+  const hasFetchedRef = useRef(false);
+  useEffect(() => {
+    if (!hasFetchedRef.current && widgetState === undefined && (output as FlowzenOutput | undefined) === undefined) {
+      hasFetchedRef.current = true;
+      callToolAsync({ mood }).catch(() => {});
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Sync widget state when server output changes
   useEffect(() => {
     const out = output as FlowzenOutput | undefined;
