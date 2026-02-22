@@ -285,7 +285,7 @@ function ManageTasks() {
   return (
     <div
       className="flowzen-container light"
-      style={{ maxHeight: maxHeight ?? undefined }}
+      style={{ maxHeight: maxHeight ?? 600 }}
       data-llm={`Mood: ${mood}. Recommendation: ${recommendation?.title ?? "none"}. ${todoCount} active tasks, ${doneCount} done. Time: ${timeContext}.`}
     >
       {/* Header */}

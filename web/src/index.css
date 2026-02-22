@@ -31,6 +31,8 @@ body {
   width: 100%;
   max-width: 100%;
   padding: 1.5rem 1.25rem 2rem;
+  border-radius: 20px;
+  overflow: hidden;
   font-size: 14px;
   line-height: 1.6;
   letter-spacing: -0.003em;
@@ -717,7 +719,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 320px;
   padding: 3rem 1rem;
   gap: 1rem;
   background: #FFE9D7;
