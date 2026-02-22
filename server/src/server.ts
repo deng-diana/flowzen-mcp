@@ -415,7 +415,6 @@ const server = new McpServer(
     });
 
     const active = tasks.filter((t) => !t.completed).length;
-    const done = tasks.filter((t) => t.completed).length;
 
     return {
       structuredContent: {
