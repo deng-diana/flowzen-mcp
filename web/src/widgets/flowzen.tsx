@@ -9,9 +9,9 @@ import { LoadingScreen } from "../components/LoadingScreen";
 type Mood = "great" | "okay" | "tired";
 
 const MOOD_OPTIONS: { value: Mood; emoji: string; label: string; sub: string }[] = [
-  { value: "great", emoji: "🔥", label: "On fire",    sub: "Ready to crush it" },
-  { value: "okay",  emoji: "🙂", label: "Getting by", sub: "Steady, not spectacular" },
-  { value: "tired", emoji: "😴", label: "Low energy", sub: "Need gentle wins" },
+  { value: "great", emoji: "🔥", label: "On fire",    sub: "Ready to do great work" },
+  { value: "okay",  emoji: "🙂", label: "Just okay",  sub: "Moving along, step by step" },
+  { value: "tired", emoji: "😴", label: "Low energy", sub: "Start small, build up slowly" },
 ];
 
 const CELEBRATION_MESSAGES = [
