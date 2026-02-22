@@ -240,6 +240,14 @@ const server = new McpServer(
         .array(z.string())
         .optional()
         .describe("Task IDs to exclude from recommendation — used for 'try another' feature"),
+      currentRecommendedId: z
+        .string()
+        .optional()
+        .describe("Task ID that was currently recommended — used to track wasRecommended on completion"),
+      acceptRecommendationId: z
+        .string()
+        .optional()
+        .describe("Task ID the user explicitly accepted ('Start this task') — marks was_accepted in recommendation_log"),
     },
     annotations: {
       readOnlyHint: false,
@@ -247,7 +255,7 @@ const server = new McpServer(
       destructiveHint: false,
     },
   },
-  async ({ actions, mood, excludedTaskIds }, extra) => {
+  async ({ actions, mood, excludedTaskIds, currentRecommendedId, acceptRecommendationId }, extra) => {
     const userId = ((extra.authInfo?.extra as any)?.userId as string | undefined)
       ?? "dev-user-demo";
 
@@ -303,11 +311,24 @@ const server = new McpServer(
               taskId: action.taskId,
               mood: mood ?? "okay",
               timeWindow: timeCtx0.window,
-              wasRecommended: false,
+              wasRecommended: action.taskId === currentRecommendedId,
             });
           }
         }
       }
+    }
+
+    // Mark recommendation as accepted when user starts the recommended task
+    if (acceptRecommendationId) {
+      supabase
+        .from("recommendation_log")
+        .update({ was_accepted: true, accepted_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .eq("recommended_task_id", acceptRecommendationId)
+        .is("was_accepted", null)
+        .order("recommended_at", { ascending: false })
+        .limit(1)
+        .then(() => {/* fire-and-forget */});
     }
 
     // Seed default tasks for new users so the recommendation engine has data to work with

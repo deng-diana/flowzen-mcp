@@ -14,6 +14,14 @@ const MOOD_OPTIONS: { value: Mood; emoji: string; label: string; sub: string }[]
   { value: "tired", emoji: "🌿", label: "Low energy", sub: "Need gentle wins" },
 ];
 
+const CELEBRATION_MESSAGES = [
+  { emoji: "✓", text: "Done! That mattered." },
+  { emoji: "⚡", text: "Momentum building." },
+  { emoji: "✓", text: "One less thing. Well done." },
+  { emoji: "🎯", text: "Task complete. Feel that." },
+  { emoji: "✓", text: "Progress is progress." },
+];
+
 interface FlowzenOutput {
   tasks: Task[];
   recommendation: Task | null;
@@ -25,35 +33,28 @@ interface FlowzenOutput {
 
 /** Split a reason string into bullet points for cleaner display */
 function parseReasonBullets(reason: string): string[] {
-  // Try sentence-level split on ". " boundaries, keep each as a bullet
   const sentences = reason
     .split(/(?<=[.!?])\s+/)
     .map((s) => s.trim())
     .filter((s) => s.length > 10);
-  // If we got 2+ sentences, use them as bullets; otherwise treat as one block
   return sentences.length >= 2 ? sentences : [reason];
 }
 
-/** Shorten a focus tip to ≤ 10 words for minimal cognitive load */
-function shortenTip(tip: string): string {
-  // Strip emoji prefix if present
-  const clean = tip.replace(/^[^\w]+/, "").trim();
-  const words = clean.split(" ");
-  if (words.length <= 10) return clean;
-  return words.slice(0, 10).join(" ") + "…";
+/** Strip leading emoji from focus tip for clean display */
+function cleanTip(tip: string): string {
+  return tip.replace(/^[\p{Emoji}\s]+/u, "").trim() || tip.trim();
 }
 
 import logoSrc from "../assets/flowzen-logo.svg";
 
-// Flowzen Logo — using imported custom design
 function FlowzenLogo({ size = 36 }: { size?: number }) {
   return (
-    <img 
-      src={logoSrc} 
-      alt="Flowzen Logo" 
-      width={size} 
-      height={size} 
-      style={{ flexShrink: 0, borderRadius: "50%" }} 
+    <img
+      src={logoSrc}
+      alt="Flowzen Logo"
+      width={size}
+      height={size}
+      style={{ flexShrink: 0, borderRadius: "50%" }}
     />
   );
 }
@@ -64,7 +65,6 @@ function ManageTasks() {
   const { maxHeight } = useLayout();
   const [displayMode, setDisplayMode] = useState<string>("inline");
 
-
   const [mood, setMood] = useState<Mood>("okay");
   const [widgetState, setWidgetState] = useWidgetState<{ tasks: Task[] }>();
   const [flowzenData, setFlowzenData] = useState<Omit<FlowzenOutput, "tasks"> | null>(null);
@@ -72,12 +72,20 @@ function ManageTasks() {
   const [excludedIds, setExcludedIds] = useState<string[]>([]);
   const mutationCounter = useRef(0);
 
+  // Celebration toast state
+  const [celebration, setCelebration] = useState<{ emoji: string; text: string } | null>(null);
+  const [celebrationLeaving, setCelebrationLeaving] = useState(false);
+  const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // "Start this task" accepted state
+  const [acceptedTaskId, setAcceptedTaskId] = useState<string | null>(null);
+
   // Inline editing state
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
   const editInputRef = useRef<HTMLInputElement>(null);
 
-  // Inline add form state (in ALL TASKS header)
+  // Inline add form state
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [addTitle, setAddTitle] = useState("");
   const [addPriority, setAddPriority] = useState<"low" | "medium" | "high">("medium");
@@ -86,11 +94,9 @@ function ManageTasks() {
   const safeTasks = (prev: { tasks?: Task[] } | null | undefined): Task[] =>
     prev?.tasks ?? [];
 
-  // Skybridge auto-unwraps structuredContent into output.
-  // output is null until the host (Claude) calls the tool.
   const outputData = output as FlowzenOutput | null;
 
-  // Sync widgetState + flowzenData when output changes (host calls the tool)
+  // Sync widgetState + flowzenData when output changes
   useEffect(() => {
     if (outputData?.tasks) {
       setWidgetState(() => ({ tasks: outputData.tasks }));
@@ -107,13 +113,6 @@ function ManageTasks() {
   }, [output]);
 
   const tasks = widgetState?.tasks ?? outputData?.tasks ?? null;
-
-  if (tasks === null) {
-    return <LoadingScreen />;
-  }
-
-  const todoCount = tasks.filter((t) => !t.completed).length;
-  const doneCount = tasks.filter((t) => t.completed).length;
 
   const syncWithServer = async (args: Parameters<typeof callToolAsync>[0]) => {
     const id = ++mutationCounter.current;
@@ -133,19 +132,24 @@ function ManageTasks() {
     }
   };
 
-  const handleMoodChange = (newMood: Mood) => {
-    setMood(newMood);
-    // Reset excluded IDs when mood changes — fresh recommendation
-    setExcludedIds([]);
-    syncWithServer({ mood: newMood });
+  const showCelebration = (taskTitle: string) => {
+    if (celebrationTimerRef.current) clearTimeout(celebrationTimerRef.current);
+    const msg = CELEBRATION_MESSAGES[Math.floor(Math.random() * CELEBRATION_MESSAGES.length)];
+    setCelebration(msg);
+    setCelebrationLeaving(false);
+    celebrationTimerRef.current = setTimeout(() => {
+      setCelebrationLeaving(true);
+      celebrationTimerRef.current = setTimeout(() => {
+        setCelebration(null);
+        setCelebrationLeaving(false);
+      }, 220);
+    }, 2200);
   };
 
-  const handleTryAnother = () => {
-    const currentRec = recommendation;
-    if (!currentRec) return;
-    const newExcluded = [...excludedIds, currentRec.id];
-    setExcludedIds(newExcluded);
-    syncWithServer({ excludedTaskIds: newExcluded, mood });
+  const handleMoodChange = (newMood: Mood) => {
+    setMood(newMood);
+    setExcludedIds([]);
+    syncWithServer({ mood: newMood });
   };
 
   const handleAdd = (title: string, priority: "low" | "medium" | "high", dueDate: string | null) => {
@@ -167,9 +171,7 @@ function ManageTasks() {
 
   const openAddForm = () => {
     setIsAddOpen(true);
-    setTimeout(() => {
-      addInputRef.current?.focus();
-    }, 50);
+    setTimeout(() => { addInputRef.current?.focus(); }, 50);
   };
 
   const closeAddForm = () => {
@@ -189,13 +191,25 @@ function ManageTasks() {
     else if (e.key === "Escape") { closeAddForm(); }
   };
 
-  const handleToggle = (taskId: string) => {
+  const handleToggle = (taskId: string, currentRecommendedId?: string) => {
+    const taskBeforeToggle = tasks?.find((t) => t.id === taskId);
+    const isCompleting = taskBeforeToggle && !taskBeforeToggle.completed;
+
     setWidgetState((prev) => ({
       tasks: safeTasks(prev).map((t) =>
         t.id === taskId ? { ...t, completed: !t.completed } : t
       ),
     }));
-    syncWithServer({ actions: [{ type: "toggle", taskId }], mood });
+
+    if (isCompleting && taskBeforeToggle) {
+      showCelebration(taskBeforeToggle.title);
+    }
+
+    syncWithServer({
+      actions: [{ type: "toggle", taskId }],
+      mood,
+      currentRecommendedId,
+    });
   };
 
   const handleDelete = (taskId: string) => {
@@ -206,10 +220,9 @@ function ManageTasks() {
   };
 
   const handleDoubleClick = (task: Task) => {
-    if (task.completed) return; // Don't allow editing completed tasks
+    if (task.completed) return;
     setEditingTaskId(task.id);
     setEditingValue(task.title);
-    // Focus the input after render
     setTimeout(() => {
       editInputRef.current?.focus();
       editInputRef.current?.select();
@@ -219,8 +232,7 @@ function ManageTasks() {
   const handleEditSave = useCallback((taskId: string) => {
     const trimmed = editingValue.trim();
     setEditingTaskId(null);
-    if (!trimmed) return; // Empty → discard
-    // Optimistic update
+    if (!trimmed) return;
     setWidgetState((prev) => ({
       tasks: safeTasks(prev).map((t) =>
         t.id === taskId ? { ...t, title: trimmed } : t
@@ -235,18 +247,35 @@ function ManageTasks() {
   };
 
   const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, taskId: string) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleEditSave(taskId);
-    } else if (e.key === "Escape") {
-      handleEditCancel();
-    }
+    if (e.key === "Enter") { e.preventDefault(); handleEditSave(taskId); }
+    else if (e.key === "Escape") { handleEditCancel(); }
   };
+
+  // === Early return AFTER all hooks ===
+  if (tasks === null) {
+    return <LoadingScreen />;
+  }
+
+  const todoCount = tasks.filter((t) => !t.completed).length;
+  const doneCount = tasks.filter((t) => t.completed).length;
 
   const recommendation = flowzenData?.recommendation ?? outputData?.recommendation ?? null;
   const reason = flowzenData?.reason ?? outputData?.reason ?? "";
   const reward = flowzenData?.reward ?? outputData?.reward;
   const timeContext = flowzenData?.timeContext ?? outputData?.timeContext ?? "";
+
+  const handleTryAnother = () => {
+    if (!recommendation) return;
+    const newExcluded = [...excludedIds, recommendation.id];
+    setExcludedIds(newExcluded);
+    syncWithServer({ excludedTaskIds: newExcluded, mood });
+  };
+
+  const handleStartTask = () => {
+    if (!recommendation) return;
+    setAcceptedTaskId(recommendation.id);
+    syncWithServer({ acceptRecommendationId: recommendation.id, mood });
+  };
 
   const effectiveFocusTips = focusTips.length > 0 ? focusTips : (outputData?.focusTips ?? []);
   const activeTasks = tasks.filter((t) => !t.completed);
@@ -261,6 +290,7 @@ function ManageTasks() {
   };
 
   const isFullscreen = displayMode === "fullscreen";
+  const isAccepted = acceptedTaskId === recommendation?.id;
 
   return (
     <div
@@ -284,32 +314,32 @@ function ManageTasks() {
           <button
             className={`flowzen-expand-btn${isFullscreen ? " active" : ""}`}
             onClick={() => setDisplayMode(isFullscreen ? "inline" : "fullscreen")}
-            aria-label={isFullscreen ? "收起" : "全屏展开"}
-            title={isFullscreen ? "收起" : "全屏展开"}
+            aria-label={isFullscreen ? "Collapse" : "Expand"}
+            title={isFullscreen ? "Collapse" : "Expand"}
           >
             {isFullscreen ? "⊠" : "⊞"}
           </button>
         </div>
       </div>
 
-      {/* Mood Selector — always visible */}
+      {/* Mood Selector */}
       <div className="mood-card">
-          <div className="mood-card-label">HOW ARE YOU FEELING?</div>
-          <div className="mood-selector">
-            {MOOD_OPTIONS.map((m) => (
-              <button
-                key={m.value}
-                className={`mood-btn ${mood === m.value ? "active" : ""}`}
-                onClick={() => handleMoodChange(m.value)}
-                aria-pressed={mood === m.value}
-              >
-                <span className="mood-emoji">{m.emoji}</span>
-                <span className="mood-label">{m.label}</span>
-                <span className="mood-sub">{m.sub}</span>
-              </button>
-            ))}
-          </div>
+        <div className="mood-card-label">HOW ARE YOU FEELING?</div>
+        <div className="mood-selector">
+          {MOOD_OPTIONS.map((m) => (
+            <button
+              key={m.value}
+              className={`mood-btn ${mood === m.value ? "active" : ""}`}
+              onClick={() => handleMoodChange(m.value)}
+              aria-pressed={mood === m.value}
+            >
+              <span className="mood-emoji">{m.emoji}</span>
+              <span className="mood-label">{m.label}</span>
+              <span className="mood-sub">{m.sub}</span>
+            </button>
+          ))}
         </div>
+      </div>
 
       {/* Recommendation Card */}
       {recommendation ? (
@@ -335,9 +365,22 @@ function ManageTasks() {
                 {recommendation.priority === "high" ? "HIGH PRIORITY" : recommendation.priority === "medium" ? "MED PRIORITY" : "LOW PRIORITY"}
               </span>
             </div>
+
+            {/* Start this task CTA */}
+            <button
+              className={`start-task-btn${isAccepted ? " accepted" : ""}`}
+              onClick={isAccepted ? undefined : handleStartTask}
+              disabled={isAccepted}
+            >
+              {isAccepted ? (
+                <>✓ Starting this</>
+              ) : (
+                <>→ Start this task</>
+              )}
+            </button>
           </div>
 
-          {/* Why this task — always expanded, bullet point format */}
+          {/* Why this task */}
           {reasonBullets.length > 0 && (
             <div className="rec-reason-wrapper">
               <div className="rec-reason-header">
@@ -352,10 +395,8 @@ function ManageTasks() {
                       className="rec-reason-text"
                       dangerouslySetInnerHTML={{
                         __html: bullet
-                          // Bold key neuro terms
                           .replace(/(cortisol|prefrontal cortex|dopamine|serotonin|BDNF|cognitive|melatonin|focus window|energy peak)/gi,
                             "<strong>$1</strong>")
-                          // Bold time expressions like "It's 10:30"
                           .replace(/(It's \d+:\d+)/g, "<strong>$1</strong>"),
                       }}
                     />
@@ -373,13 +414,13 @@ function ManageTasks() {
         </div>
       )}
 
-      {/* Focus Tips — shortened, minimal */}
+      {/* Focus Tips — full text */}
       {effectiveFocusTips.length > 0 && recommendation && (
         <div className="focus-tips-section">
           {effectiveFocusTips.slice(0, 2).map((tip, i) => (
             <div key={i} className="focus-tip">
               <span className="focus-tip-icon">💡</span>
-              <span className="focus-tip-text">{shortenTip(tip)}</span>
+              <span className="focus-tip-text">{cleanTip(tip)}</span>
             </div>
           ))}
         </div>
@@ -404,8 +445,6 @@ function ManageTasks() {
 
       {/* ALL TASKS Section */}
       <div className="flowzen-section">
-
-        {/* Section header with inline + Add task button */}
         <div className="flowzen-section-label">
           <span>ALL TASKS</span>
           {activeTasks.length > 0 && (
@@ -420,7 +459,7 @@ function ManageTasks() {
           </button>
         </div>
 
-        {/* Inline add form — slides in below the header */}
+        {/* Inline add form */}
         {isAddOpen && (
           <div className="inline-add-form">
             <input
@@ -462,7 +501,7 @@ function ManageTasks() {
           </div>
         )}
 
-        {/* Empty State — new user, zero tasks */}
+        {/* Empty State */}
         {tasks.length === 0 && !isAddOpen ? (
           <div className="flowzen-empty-state">
             <div className="empty-state-icon">🌊</div>
@@ -484,7 +523,7 @@ function ManageTasks() {
                   {!isEditing && (
                     <button
                       className="flowzen-checkbox"
-                      onClick={() => handleToggle(task.id)}
+                      onClick={() => handleToggle(task.id, recommendation?.id)}
                       aria-label="Mark complete"
                     />
                   )}
@@ -574,6 +613,14 @@ function ManageTasks() {
           </div>
         ) : null}
       </div>
+
+      {/* Celebration Toast */}
+      {celebration && (
+        <div className={`celebration-toast${celebrationLeaving ? " leaving" : ""}`}>
+          <span className="celebration-toast-emoji">{celebration.emoji}</span>
+          <span>{celebration.text}</span>
+        </div>
+      )}
     </div>
   );
 }

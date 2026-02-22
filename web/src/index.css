@@ -1159,6 +1159,87 @@ body {
   transform: translateY(-1px);
 }
 
+/* ── Start This Task Button ── */
+.start-task-btn {
+  width: 100%;
+  margin-top: 0.625rem;
+  padding: 0.6rem 1rem;
+  background: #d97757;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.75rem;
+  font-family: "Poppins", Arial, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+  box-shadow: 0 3px 12px rgba(217, 119, 87, 0.25);
+}
+
+.start-task-btn:hover {
+  background: #c56644;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(217, 119, 87, 0.35);
+}
+
+.start-task-btn:active {
+  transform: scale(0.98);
+}
+
+.start-task-btn.accepted {
+  background: #788c5d;
+  box-shadow: 0 2px 8px rgba(120, 140, 93, 0.25);
+  cursor: default;
+  transform: none;
+}
+
+/* ── Celebration Toast ── */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(-6px) scale(0.97); }
+}
+
+.celebration-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2d2926;
+  color: #ffffff;
+  border-radius: 9999px;
+  padding: 0.625rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: "Poppins", Arial, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 8px 28px rgba(45, 41, 38, 0.22);
+  z-index: 9999;
+  white-space: nowrap;
+  animation: toast-in 0.22s ease-out forwards;
+  pointer-events: none;
+}
+
+.celebration-toast.leaving {
+  animation: toast-out 0.2s ease-in forwards;
+}
+
+.celebration-toast-emoji {
+  font-size: 0.9rem;
+}
+
 /* ── Backwards compat ── */
 .todo-container {
   max-width: 480px;
