@@ -215,7 +215,10 @@ const server = new McpServer(
     _meta: {
       ui: {
         csp: {
-          resourceDomains: ["https://fonts.googleapis.com"],
+          resourceDomains: [
+            "https://fonts.googleapis.com",
+            "https://fonts.gstatic.com",
+          ],
           connectDomains: [env.SUPABASE_URL],
         },
       },

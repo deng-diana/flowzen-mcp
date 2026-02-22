@@ -140,10 +140,11 @@ function ManageTasks() {
   const activeTasks = tasks.filter((t) => !t.completed);
   const doneTasks = tasks.filter((t) => t.completed);
 
+  // Anthropic brand accent colors: orange · blue · green
   const PRIORITY_COLORS: Record<string, string> = {
-    high: "#ef4444",
-    medium: "#f59e0b",
-    low: "#22c55e",
+    high: "#d97757",
+    medium: "#6a9bcc",
+    low: "#788c5d",
   };
 
   return (
