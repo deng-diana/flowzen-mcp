@@ -85,17 +85,34 @@ function ManageTasks() {
   const safeTasks = (prev: { tasks?: Task[] } | null | undefined): Task[] =>
     prev?.tasks ?? [];
 
-  // Auto-fetch on mount if widget has no data yet (cold open — Claude hasn't called the tool yet)
-  // NOTE: Skybridge useToolInfo returns output=null (not undefined) when no tool call has happened yet
+  // Helper: apply server result to local state (used by auto-fetch and syncWithServer)
+  const applyServerResult = useCallback((result: { structuredContent?: FlowzenOutput } | null | undefined) => {
+    const sc = result?.structuredContent as FlowzenOutput | undefined;
+    if (sc?.tasks) {
+      setWidgetState(() => ({ tasks: sc.tasks }));
+      if (sc.recommendation !== undefined) {
+        setFlowzenData({
+          recommendation: sc.recommendation,
+          reason: sc.reason,
+          reward: sc.reward,
+          timeContext: sc.timeContext,
+        });
+        setFocusTips(sc.focusTips ?? []);
+      }
+    }
+  }, []);
+
+  // Auto-fetch on mount if no data yet (cold open).
+  // callToolAsync returns data directly — useToolInfo.output is NOT updated by callToolAsync.
   const hasFetchedRef = useRef(false);
   useEffect(() => {
     if (!hasFetchedRef.current && widgetState == null && output == null) {
       hasFetchedRef.current = true;
-      callToolAsync({ mood }).catch(() => {});
+      callToolAsync({ mood }).then(applyServerResult).catch(() => {});
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sync widget state when server output changes
+  // Sync widget state when Claude calls the tool (output updated by host)
   useEffect(() => {
     const out = output as FlowzenOutput | null | undefined;
     if (out?.tasks) {
