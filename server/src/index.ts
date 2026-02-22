@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import cors from "cors";
 import express from "express";
 import { widgetsDevServer } from "skybridge/server";
@@ -23,30 +24,51 @@ if (nodeEnv === "production") {
 
 app.use(cors());
 
-// OAuth discovery endpoints — required by Claude.ai (MCP 2025-06-18 spec)
-const CLERK_DOMAIN = "https://clerk.flowzenai.app";
+// Self-contained OAuth server — required by Claude.ai (MCP 2025-06-18 spec)
+// Our server acts as both resource server and authorization server.
 const SERVER_URL = process.env.MCP_SERVER_URL ?? "https://flowzen-mcp-dfdb5406.alpic.live";
 
 app.get("/.well-known/oauth-protected-resource", (_req, res) => {
   res.json({
     resource: SERVER_URL,
-    authorization_servers: [CLERK_DOMAIN],
+    authorization_servers: [SERVER_URL],
   });
 });
 
 app.get("/.well-known/oauth-authorization-server", (_req, res) => {
   res.json({
-    issuer: CLERK_DOMAIN,
-    authorization_endpoint: `${CLERK_DOMAIN}/oauth/authorize`,
-    token_endpoint: `${CLERK_DOMAIN}/oauth/token`,
-    revocation_endpoint: `${CLERK_DOMAIN}/oauth/token/revoke`,
-    userinfo_endpoint: `${CLERK_DOMAIN}/oauth/userinfo`,
-    jwks_uri: `${CLERK_DOMAIN}/.well-known/jwks.json`,
+    issuer: SERVER_URL,
+    authorization_endpoint: `${SERVER_URL}/oauth/authorize`,
+    token_endpoint: `${SERVER_URL}/oauth/token`,
     response_types_supported: ["code"],
-    grant_types_supported: ["authorization_code", "refresh_token"],
+    grant_types_supported: ["authorization_code"],
     code_challenge_methods_supported: ["S256"],
-    scopes_supported: ["openid", "profile", "email"],
     token_endpoint_auth_methods_supported: ["none"],
+    scopes_supported: ["mcp"],
+  });
+});
+
+// /oauth/authorize — immediately redirect back with code (Claude.ai handles the user flow)
+app.get("/oauth/authorize", (req, res) => {
+  const redirectUri = req.query.redirect_uri as string;
+  const state = req.query.state as string | undefined;
+  if (!redirectUri) {
+    res.status(400).json({ error: "invalid_request", error_description: "redirect_uri required" });
+    return;
+  }
+  const code = randomBytes(16).toString("hex");
+  const url = new URL(redirectUri);
+  url.searchParams.set("code", code);
+  if (state) url.searchParams.set("state", state);
+  res.redirect(url.toString());
+});
+
+// /oauth/token — issue an opaque access token
+app.post("/oauth/token", express.urlencoded({ extended: false }), (_req, res) => {
+  res.json({
+    access_token: randomBytes(32).toString("hex"),
+    token_type: "bearer",
+    expires_in: 86400,
   });
 });
 
