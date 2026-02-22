@@ -1,11 +1,29 @@
 import { McpServer } from "skybridge/server";
 import { z } from "zod";
 import { env } from "./env.js";
-import { executeActions, fetchTasks, supabase } from "./supabase.js";
+import { executeActions, supabase } from "./supabase.js";
 import { callClaudeForRecommendation } from "./llm.js";
 import { fetchUserInsights, logRecommendation, recordCompletion } from "./user-insights.js";
 
 const SERVER_URL = process.env.MCP_SERVER_URL ?? "http://localhost:3000";
+
+async function fetchTasksWithDifficulty(userId: string) {
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("id, title, completed, priority, difficulty, due_date, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  const tasks: Task[] = (data ?? []).map((t) => ({
+    id: t.id,
+    title: t.title,
+    completed: t.completed,
+    priority: t.priority ?? "medium",
+    difficulty: t.difficulty ?? "medium",
+    dueDate: t.due_date,
+    createdAt: t.created_at,
+  }));
+  return { tasks, error };
+}
 
 type Mood = "great" | "okay" | "tired";
 
@@ -47,6 +65,7 @@ interface Task {
   title: string;
   completed: boolean;
   priority: string;
+  difficulty: string;
   dueDate: string | null;
   createdAt: string;
 }
@@ -56,6 +75,21 @@ function getRecommendation(tasks: Task[], mood: Mood, timeCtx: TimeContext, excl
   if (activeTasks.length === 0) return null;
 
   const priorityOrder: Record<string, number> = { high: 3, medium: 2, low: 1 };
+
+  // Secondary sort: prefer tasks matching target difficulty
+  let targetDifficulty: "easy" | "medium" | "hard";
+  if (mood === "tired") {
+    targetDifficulty = "easy";
+  } else if (mood === "great" && (timeCtx.window === "peak_morning" || timeCtx.window === "early_morning")) {
+    targetDifficulty = "hard";
+  } else {
+    targetDifficulty = "medium";
+  }
+  const difficultyMatchScore = (d: string): number => {
+    if (d === targetDifficulty) return 2;
+    if (d === "medium") return 1;
+    return 0;
+  };
 
   // Determine which priority tier to target based on mood × time
   // Full 9-cell matrix: mood (great/okay/tired) × time (morning/afternoon/evening)
@@ -110,11 +144,16 @@ function getRecommendation(tasks: Task[], mood: Mood, timeCtx: TimeContext, excl
     const match = activeTasks
       .filter((t) => t.priority === p)
       .sort((a, b) => {
-        // Prefer tasks with due dates closer
-        if (a.dueDate && b.dueDate)
-          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        // Primary: prefer tasks with nearer due dates
+        if (a.dueDate && b.dueDate) {
+          const dateDiff = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+          if (dateDiff !== 0) return dateDiff;
+        }
         if (a.dueDate) return -1;
         if (b.dueDate) return 1;
+        // Secondary: prefer difficulty matching target
+        const diffDiff = difficultyMatchScore(b.difficulty) - difficultyMatchScore(a.difficulty);
+        if (diffDiff !== 0) return diffDiff;
         return priorityOrder[b.priority] - priorityOrder[a.priority];
       })[0];
     if (match) return match;
@@ -199,6 +238,7 @@ const ActionSchema = z.discriminatedUnion("type", [
     type: z.literal("add"),
     title: z.string().describe("Task title"),
     priority: z.enum(["low", "medium", "high"]).optional().describe("Task priority (default: medium)"),
+    difficulty: z.enum(["easy", "medium", "hard"]).optional().describe("Task difficulty (default: medium). Use 'easy' for simple/routine tasks, 'hard' for complex/demanding tasks."),
     dueDate: z.string().optional().describe("Due date as ISO date string, e.g. 2025-03-01"),
   }),
   z.object({
@@ -218,6 +258,11 @@ const ActionSchema = z.discriminatedUnion("type", [
     type: z.literal("update_priority"),
     taskId: z.string().describe("ID of the task to update"),
     priority: z.enum(["low", "medium", "high"]).describe("New priority level"),
+  }),
+  z.object({
+    type: z.literal("update_difficulty"),
+    taskId: z.string().describe("ID of the task to update"),
+    difficulty: z.enum(["easy", "medium", "hard"]).describe("New difficulty level"),
   }),
 ]);
 
@@ -294,13 +339,27 @@ const server = new McpServer(
     }
 
     if (actions && actions.length > 0) {
-      // rename and update_priority are handled here directly (not in supabase.ts executeActions)
+      // add, rename, update_priority, update_difficulty handled directly (supabase.ts doesn't support them fully)
+      // toggle + delete go through executeActions
+      const addActions = actions.filter((a) => a.type === "add");
       const renameActions = actions.filter((a) => a.type === "rename");
       const priorityActions = actions.filter((a) => a.type === "update_priority");
-      const otherActions = actions.filter((a) => a.type !== "rename" && a.type !== "update_priority");
+      const difficultyActions = actions.filter((a) => a.type === "update_difficulty");
+      const toggleDeleteActions = actions.filter((a) => a.type === "toggle" || a.type === "delete");
 
       await Promise.all([
-        otherActions.length > 0 ? executeActions(userId, otherActions as any) : Promise.resolve(),
+        toggleDeleteActions.length > 0 ? executeActions(userId, toggleDeleteActions as any) : Promise.resolve(),
+        ...addActions.map((a) =>
+          a.type === "add"
+            ? supabase.from("tasks").insert({
+                user_id: userId,
+                title: a.title,
+                priority: a.priority ?? "medium",
+                difficulty: (a as any).difficulty ?? "medium",
+                due_date: (a as any).dueDate ?? null,
+              })
+            : Promise.resolve()
+        ),
         ...renameActions.map((a) =>
           a.type === "rename" && a.taskId && a.title
             ? supabase.from("tasks").update({ title: a.title }).eq("id", a.taskId).eq("user_id", userId)
@@ -311,11 +370,16 @@ const server = new McpServer(
             ? supabase.from("tasks").update({ priority: a.priority }).eq("id", a.taskId).eq("user_id", userId)
             : Promise.resolve()
         ),
+        ...difficultyActions.map((a) =>
+          a.type === "update_difficulty" && a.taskId
+            ? supabase.from("tasks").update({ difficulty: a.difficulty }).eq("id", a.taskId).eq("user_id", userId)
+            : Promise.resolve()
+        ),
       ]);
     }
 
     const [tasksResult, userInsights] = await Promise.all([
-      fetchTasks(userId),
+      fetchTasksWithDifficulty(userId),
       fetchUserInsights(userId),
     ]);
     let { tasks, error } = tasksResult;
@@ -356,16 +420,18 @@ const server = new McpServer(
     // Seed default tasks for new users so the recommendation engine has data to work with
     if (!error && tasks.length === 0) {
       const seedTasks = [
-        { type: "add" as const, title: "Finish product demo for Friday's investor call", priority: "high" as const },
-        { type: "add" as const, title: "Write performance review for the team", priority: "high" as const },
-        { type: "add" as const, title: "Review Q2 marketing budget proposal", priority: "medium" as const },
-        { type: "add" as const, title: "Reply to client feedback emails", priority: "medium" as const },
-        { type: "add" as const, title: "Brainstorm ideas for the team offsite", priority: "medium" as const },
-        { type: "add" as const, title: "Update project wiki with new feature notes", priority: "low" as const },
-        { type: "add" as const, title: "Read one chapter of your current book", priority: "low" as const },
+        { title: "Finish product demo for Friday's investor call", priority: "high" as const, difficulty: "hard" as const },
+        { title: "Write performance review for the team", priority: "high" as const, difficulty: "hard" as const },
+        { title: "Review Q2 marketing budget proposal", priority: "medium" as const, difficulty: "medium" as const },
+        { title: "Reply to client feedback emails", priority: "medium" as const, difficulty: "easy" as const },
+        { title: "Brainstorm ideas for the team offsite", priority: "medium" as const, difficulty: "medium" as const },
+        { title: "Update project wiki with new feature notes", priority: "low" as const, difficulty: "easy" as const },
+        { title: "Read one chapter of your current book", priority: "low" as const, difficulty: "easy" as const },
       ];
-      await executeActions(userId, seedTasks);
-      const seeded = await fetchTasks(userId);
+      await Promise.all(seedTasks.map((t) =>
+        supabase.from("tasks").insert({ user_id: userId, ...t })
+      ));
+      const seeded = await fetchTasksWithDifficulty(userId);
       if (!seeded.error) {
         tasks = seeded.tasks;
         error = seeded.error;

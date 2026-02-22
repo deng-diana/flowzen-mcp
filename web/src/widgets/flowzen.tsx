@@ -3,7 +3,7 @@ import { useRef, useState, useCallback } from "react";
 import { mountWidget, useLayout, useWidgetState } from "skybridge/web";
 import React from "react";
 import { useToolInfo, useCallTool } from "../helpers";
-import { type Task } from "../components/types";
+import { type Task, DIFFICULTY_COLORS } from "../components/types";
 import { LoadingScreen } from "../components/LoadingScreen";
 
 type Mood = "great" | "okay" | "tired";
@@ -98,6 +98,7 @@ function ManageTasks() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [addTitle, setAddTitle] = useState("");
   const [addPriority, setAddPriority] = useState<"low" | "medium" | "high">("medium");
+  const [addDifficulty, setAddDifficulty] = useState<"easy" | "medium" | "hard">("medium");
   const addInputRef = useRef<HTMLInputElement>(null);
 
   const safeTasks = (prev: { tasks?: Task[] } | null | undefined): Task[] =>
@@ -151,7 +152,7 @@ function ManageTasks() {
     syncWithServer({ mood: newMood }, true);
   };
 
-  const handleAdd = (title: string, priority: "low" | "medium" | "high", dueDate: string | null) => {
+  const handleAdd = (title: string, priority: "low" | "medium" | "high", difficulty: "easy" | "medium" | "hard", dueDate: string | null) => {
     setWidgetState((prev) => ({
       tasks: [
         {
@@ -159,13 +160,14 @@ function ManageTasks() {
           title,
           completed: false,
           priority,
+          difficulty,
           dueDate,
           createdAt: new Date().toISOString(),
         },
         ...safeTasks(prev),
       ],
     }));
-    syncWithServer({ actions: [{ type: "add", title, priority, dueDate: dueDate ?? undefined }], mood });
+    syncWithServer({ actions: [{ type: "add", title, priority, difficulty, dueDate: dueDate ?? undefined }], mood });
   };
 
   const openAddForm = () => {
@@ -177,11 +179,12 @@ function ManageTasks() {
     setIsAddOpen(false);
     setAddTitle("");
     setAddPriority("medium");
+    setAddDifficulty("medium");
   };
 
   const submitAdd = () => {
     if (!addTitle.trim()) { closeAddForm(); return; }
-    handleAdd(addTitle.trim(), addPriority, null);
+    handleAdd(addTitle.trim(), addPriority, addDifficulty, null);
     closeAddForm();
   };
 
@@ -257,6 +260,15 @@ function ManageTasks() {
       ),
     }));
     syncWithServer({ actions: [{ type: "update_priority", taskId, priority: newPriority }], mood });
+  };
+
+  const handleDifficultyChange = (taskId: string, newDifficulty: "easy" | "medium" | "hard") => {
+    setWidgetState((prev) => ({
+      tasks: safeTasks(prev).map((t) =>
+        t.id === taskId ? { ...t, difficulty: newDifficulty } : t
+      ),
+    }));
+    syncWithServer({ actions: [{ type: "update_difficulty", taskId, difficulty: newDifficulty }], mood });
   };
 
   // === Early return AFTER all hooks ===
@@ -388,23 +400,35 @@ function ManageTasks() {
                 <span className="rec-icon">⚡</span>
                 <span className="rec-title">DO THIS NOW</span>
                 <button className="try-another-btn" onClick={handleTryAnother}>
-                  Show me another
+                  Try another
                 </button>
               </div>
               {/* key on rec-card triggers entrance animation after each mood/another refresh */}
               <div className="rec-card rec-card-enter" key={recAnimKey}>
-                <div className="rec-task-title">{recommendation.title}</div>
-                <div className="rec-task-meta">
-                  <span
-                    className="rec-priority-badge"
-                    style={{
-                      background: `${PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5"}18`,
-                      color: PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5",
-                      border: `1px solid ${PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5"}40`,
-                    }}
-                  >
-                    {recommendation.priority === "high" ? "HIGH PRIORITY" : recommendation.priority === "medium" ? "MED PRIORITY" : "LOW PRIORITY"}
-                  </span>
+                <div className="rec-task-row">
+                  <div className="rec-task-title">{recommendation.title}</div>
+                  <div className="rec-task-meta">
+                    <span
+                      className="rec-priority-badge"
+                      style={{
+                        background: `${PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5"}18`,
+                        color: PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5",
+                        border: `1px solid ${PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5"}40`,
+                      }}
+                    >
+                      {recommendation.priority === "high" ? "HIGH" : recommendation.priority === "medium" ? "MED" : "LOW"}
+                    </span>
+                    <span
+                      className="rec-priority-badge"
+                      style={{
+                        background: `${DIFFICULTY_COLORS[recommendation.difficulty ?? "medium"] ?? "#b0aea5"}18`,
+                        color: DIFFICULTY_COLORS[recommendation.difficulty ?? "medium"] ?? "#b0aea5",
+                        border: `1px solid ${DIFFICULTY_COLORS[recommendation.difficulty ?? "medium"] ?? "#b0aea5"}40`,
+                      }}
+                    >
+                      {recommendation.difficulty === "easy" ? "EASY" : recommendation.difficulty === "hard" ? "HARD" : "MED"}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Why this task — shown immediately so user understands before committing */}
@@ -434,7 +458,7 @@ function ManageTasks() {
                 )}
 
                 <button className="start-task-btn" onClick={handleStartTask}>
-                  → Start this task
+                  I'm ready →
                 </button>
               </div>
             </>
@@ -574,6 +598,24 @@ function ManageTasks() {
                     </button>
                   ))}
                 </div>
+                <span className="add-row-sep">·</span>
+                <div className="priority-chips">
+                  {([
+                    { value: "easy" as const, label: "Easy", color: "#788c5d" },
+                    { value: "medium" as const, label: "Med", color: "#b08a4a" },
+                    { value: "hard" as const, label: "Hard", color: "#c0556e" },
+                  ]).map((d) => (
+                    <button
+                      key={d.value}
+                      className={`priority-chip ${addDifficulty === d.value ? "active" : ""}`}
+                      style={addDifficulty === d.value ? { color: d.color, borderColor: d.color + "55", background: d.color + "11" } : {}}
+                      onClick={() => setAddDifficulty(d.value)}
+                      type="button"
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
                 <button className="add-btn" onClick={submitAdd}>Add ↵</button>
                 <button className="add-cancel-btn" onClick={closeAddForm} type="button" aria-label="Cancel">✕</button>
               </div>
@@ -644,6 +686,21 @@ function ManageTasks() {
                               <option value="high">HIGH</option>
                               <option value="medium">MED</option>
                               <option value="low">LOW</option>
+                            </select>
+                            <span className="priority-select-arrow">▾</span>
+                          </div>
+                          <span className="task-meta-sep">·</span>
+                          <div className="priority-select-wrapper" style={{ color: DIFFICULTY_COLORS[task.difficulty ?? "medium"] ?? "#b0aea5" }}>
+                            <select
+                              className="priority-select"
+                              value={task.difficulty ?? "medium"}
+                              onChange={(e) => handleDifficultyChange(task.id, e.target.value as "easy" | "medium" | "hard")}
+                              onClick={(e) => e.stopPropagation()}
+                              aria-label="Change difficulty"
+                            >
+                              <option value="hard">HARD</option>
+                              <option value="medium">MED</option>
+                              <option value="easy">EASY</option>
                             </select>
                             <span className="priority-select-arrow">▾</span>
                           </div>

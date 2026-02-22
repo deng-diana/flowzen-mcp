@@ -10,11 +10,24 @@ export const PRIORITY_LABELS: Record<string, string> = {
   low: "Low",
 };
 
+export const DIFFICULTY_COLORS: Record<string, string> = {
+  easy: "#788c5d",
+  medium: "#b08a4a",
+  hard: "#c0556e",
+};
+
+export const DIFFICULTY_LABELS: Record<string, string> = {
+  easy: "Easy",
+  medium: "Med",
+  hard: "Hard",
+};
+
 export interface Task {
   id: string;
   title: string;
   completed: boolean;
   priority: string;
+  difficulty: string;
   dueDate: string | null;
   createdAt: string;
 }

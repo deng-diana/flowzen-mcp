@@ -31,7 +31,7 @@ body {
   width: 100%;
   max-width: 100%;
   padding: 1.5rem 1.25rem 3rem;
-  border-radius: 20px;
+  border-radius: 14px;
   font-size: 14px;
   line-height: 1.6;
   letter-spacing: -0.003em;
@@ -170,7 +170,7 @@ body {
 /* ── Mood Card (wraps mood selector in a white card) ── */
 .mood-card {
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 10px;
   padding: 0.75rem 0.875rem 0.75rem;
   margin-bottom: 1rem;
   box-shadow: 0 2px 12px rgba(255, 113, 72, 0.08);
@@ -201,7 +201,7 @@ body {
   gap: 0.5rem;
   padding: 0.5rem 0.625rem;
   border: 1.5px solid rgba(255, 113, 72, 0.15);
-  border-radius: 0.875rem;
+  border-radius: 0.5rem;
   background: #ffffff;
   color: #2d2926;
   font-family: inherit;
@@ -272,7 +272,7 @@ body {
 .rec-skeleton-card {
   background: #ffffff;
   border: 1.5px solid rgba(255, 113, 72, 0.15);
-  border-radius: 1rem;
+  border-radius: 0.625rem;
   padding: 1rem 1.125rem 0.875rem;
   margin-bottom: 0.625rem;
   overflow: hidden;
@@ -396,7 +396,7 @@ body {
 .rec-card {
   background: #ffffff;
   border: 1.5px solid rgba(255, 113, 72, 0.25);
-  border-radius: 1rem;
+  border-radius: 0.625rem;
   padding: 1rem 1.125rem 0.875rem;
   margin-bottom: 0.625rem;
   position: relative;
@@ -413,7 +413,7 @@ body {
   right: 0;
   height: 3px;
   background: linear-gradient(90deg, #FF7148 0%, #e8a07a 60%, #f0c4a8 100%);
-  border-radius: 1rem 1rem 0 0;
+  border-radius: 0.625rem 0.625rem 0 0;
 }
 
 .rec-card--empty {
@@ -422,20 +422,33 @@ body {
   box-shadow: none;
 }
 
+/* ── Rec card: title row (title + badges on same line) ── */
+.rec-task-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin-bottom: 0.5rem;
+}
+
 .rec-task-title {
+  flex: 1;
+  min-width: 0;
   font-family: "Lora", Georgia, serif;
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.4;
   letter-spacing: -0.01em;
   color: #2d2926;
-  margin-bottom: 0.5rem;
 }
 
 .rec-task-meta {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  align-items: flex-start;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  padding-top: 0.175rem;
 }
 
 .rec-priority-badge {
@@ -452,7 +465,7 @@ body {
 .rec-reason-wrapper {
   background: #fdf6ec;
   border: 1px solid rgba(217, 175, 119, 0.25);
-  border-radius: 0.875rem;
+  border-radius: 0.5rem;
   padding: 0.875rem 1rem;
   margin-top: 0.375rem;
   box-shadow: 0 1px 6px rgba(217, 175, 119, 0.08);
@@ -580,7 +593,7 @@ body {
   gap: 0.75rem;
   background: #ffffff;
   border: 1.5px solid rgba(120, 140, 93, 0.2);
-  border-radius: 0.875rem;
+  border-radius: 0.5rem;
   padding: 0.875rem 1rem;
   box-shadow: 0 1px 6px rgba(120, 140, 93, 0.07);
 }
@@ -623,16 +636,16 @@ body {
   font-size: 0.8125rem;
   line-height: 1.6;
   background: #ffffff;
-  border-radius: 0.875rem;
+  border-radius: 0.5rem;
   border: 1px dashed rgba(255, 113, 72, 0.2);
 }
 
 .flowzen-task-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
   padding: 0.4375rem 0.75rem;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   background: #ffffff;
   border: 1px solid rgba(255, 113, 72, 0.12);
   transition: all 0.15s;
@@ -657,14 +670,16 @@ body {
 
 /* Checkbox */
 .flowzen-checkbox {
-  width: 1.125rem;
-  height: 1.125rem;
-  min-width: 1.125rem;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  min-width: 0.9375rem;
+  margin-top: 0.175rem;
+  flex-shrink: 0;
   border: 1.5px solid #2d2926;
-  border-radius: 0.25rem;
+  border-radius: 0.1875rem;
   background: transparent;
   color: transparent;
-  font-size: 0.6rem;
+  font-size: 0.5625rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
@@ -733,7 +748,20 @@ body {
   opacity: 0.9;
 }
 
-/* ── Priority Dropdown ── */
+/* ── Priority / Difficulty Dropdowns ── */
+.task-meta-sep {
+  font-size: 0.5625rem;
+  color: #c4bfb8;
+  margin: 0 2px;
+  line-height: 1;
+}
+
+.add-row-sep {
+  font-size: 0.625rem;
+  color: #c4bfb8;
+  flex-shrink: 0;
+}
+
 .priority-select-wrapper {
   display: inline-flex;
   align-items: center;
@@ -924,7 +952,7 @@ body {
   width: 100%;
   padding: 0.625rem 1rem;
   border: 1.5px solid rgba(255, 113, 72, 0.2);
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   font-size: 0.875rem;
   font-family: "Lora", Georgia, serif;
   background: #ffffff;
@@ -1043,7 +1071,7 @@ body {
 .inline-add-form {
   background: #ffffff;
   border: 1.5px solid rgba(255, 113, 72, 0.3);
-  border-radius: 0.875rem;
+  border-radius: 0.5rem;
   padding: 0.75rem 0.875rem;
   margin-bottom: 0.5rem;
   animation: slideDown 0.18s ease-out;
@@ -1106,7 +1134,7 @@ body {
   padding: 2.5rem 1.5rem 2rem;
   text-align: center;
   background: #ffffff;
-  border-radius: 1.125rem;
+  border-radius: 0.625rem;
   border: 1px dashed rgba(255, 113, 72, 0.25);
 }
 
@@ -1380,17 +1408,16 @@ body {
   font-family: "Poppins", Arial, sans-serif;
   font-size: 0.5rem;
   font-weight: 700;
-  line-height: 1.125rem;
+  line-height: 1;
   letter-spacing: 0;
 }
 
 .tasks-trigger-arrow {
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 1.0625rem;
+  font-weight: 400;
   color: #FF7148;
   line-height: 1;
-  margin-left: 0.05rem;
-  opacity: 0.7;
+  margin-left: 0.1rem;
 }
 
 /* ── Task Drawer Backdrop ── */
