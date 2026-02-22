@@ -73,8 +73,10 @@ function ManageTasks() {
   // A version counter triggers exactly ONE re-render when new server data arrives.
   const serverDataRef = useRef<Omit<FlowzenOutput, "tasks"> & { focusTips: string[] } | null>(null);
   const [serverDataVersion, setServerDataVersion] = useState(0);
-  // Loading indicator for recommendation section during mood change / show-another
+  // Loading indicator: shows skeleton during mood change / show-another
   const [isRefreshing, setIsRefreshing] = useState(false);
+  // Increments only after a skeleton-visible refresh completes — triggers rec-card entrance animation
+  const [recAnimKey, setRecAnimKey] = useState(0);
 
   // Celebration toast state
   const [celebration, setCelebration] = useState<{ emoji: string; text: string } | null>(null);
@@ -124,6 +126,7 @@ function ManageTasks() {
         };
         setWidgetState(() => ({ tasks: sc.tasks }));
         setServerDataVersion((v) => v + 1);
+        if (showLoading) setRecAnimKey((k) => k + 1);
       }
     }
   };
@@ -350,9 +353,23 @@ function ManageTasks() {
         </div>
       </div>
 
-      {/* Recommendation Card */}
-      {recommendation ? (
-        <div className={`recommendation-section${isRefreshing ? " refreshing" : ""}`}>
+      {/* Recommendation Card — skeleton during loading, animated card on arrive */}
+      {isRefreshing ? (
+        /* ── SKELETON: instant feedback while waiting for server ── */
+        <div className="recommendation-section">
+          <div className="rec-header">
+            <span className="rec-icon">⚡</span>
+            <span className="rec-title">DO THIS NOW</span>
+          </div>
+          <div className="rec-skeleton-card">
+            <div className="rec-skeleton-line rec-skeleton-title" />
+            <div className="rec-skeleton-line rec-skeleton-badge" />
+            <div className="rec-skeleton-btn" />
+          </div>
+        </div>
+      ) : recommendation ? (
+        /* ── LOADED STATE ── */
+        <div className="recommendation-section">
 
           {/* ── BEFORE START: show task + CTA only ── */}
           {!isAccepted && (
@@ -360,11 +377,12 @@ function ManageTasks() {
               <div className="rec-header">
                 <span className="rec-icon">⚡</span>
                 <span className="rec-title">DO THIS NOW</span>
-                <button className="try-another-btn" onClick={handleTryAnother} disabled={isRefreshing}>
-                  {isRefreshing ? "..." : "Show me another"}
+                <button className="try-another-btn" onClick={handleTryAnother}>
+                  Show me another
                 </button>
               </div>
-              <div className="rec-card">
+              {/* key on rec-card triggers entrance animation after each mood/another refresh */}
+              <div className="rec-card rec-card-enter" key={recAnimKey}>
                 <div className="rec-task-title">{recommendation.title}</div>
                 <div className="rec-task-meta">
                   <span

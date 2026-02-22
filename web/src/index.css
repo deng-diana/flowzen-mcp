@@ -260,12 +260,79 @@ body {
 /* ── Recommendation Section ── */
 .recommendation-section {
   margin-bottom: 0.875rem;
-  transition: opacity 0.2s ease;
 }
 
-.recommendation-section.refreshing {
-  opacity: 0.45;
-  pointer-events: none;
+/* ── Skeleton Loader ── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.rec-skeleton-card {
+  background: #ffffff;
+  border: 1.5px solid rgba(255, 113, 72, 0.15);
+  border-radius: 1rem;
+  padding: 1rem 1.125rem 0.875rem;
+  margin-bottom: 0.625rem;
+  overflow: hidden;
+}
+
+.rec-skeleton-line {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    #f0e8e0 0%,
+    #e8ddd5 40%,
+    #f5ede7 60%,
+    #f0e8e0 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.rec-skeleton-title {
+  height: 1.125rem;
+  width: 72%;
+  margin-bottom: 0.75rem;
+}
+
+.rec-skeleton-badge {
+  height: 0.875rem;
+  width: 28%;
+  margin-bottom: 0.875rem;
+  animation-delay: 0.08s;
+}
+
+.rec-skeleton-btn {
+  height: 2.375rem;
+  width: 100%;
+  border-radius: 0.75rem;
+  background: linear-gradient(
+    90deg,
+    #f5e5da 0%,
+    #eedad0 40%,
+    #faeee8 60%,
+    #f5e5da 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  animation-delay: 0.16s;
+}
+
+/* ── Rec Card Entrance Animation ── */
+@keyframes rec-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rec-card-enter {
+  animation: rec-card-enter 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .rec-header {
