@@ -308,9 +308,6 @@ function ManageTasks() {
           </div>
         </div>
         <div className="flowzen-header-right">
-          {timeContext && (
-            <span className="flowzen-time-badge">{timeContext}</span>
-          )}
           <button
             className={`flowzen-expand-btn${isFullscreen ? " active" : ""}`}
             onClick={() => setDisplayMode(isFullscreen ? "inline" : "fullscreen")}
