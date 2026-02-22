@@ -57,11 +57,13 @@ function ManageTasks() {
     }
   }, [output]);
 
-  if (isPending || widgetState?.tasks === undefined) {
+  // Fall back to output directly if widgetState hasn't been hydrated yet
+  const outputData = output as FlowzenOutput | undefined;
+  const tasks = widgetState?.tasks ?? outputData?.tasks;
+
+  if (isPending || tasks === undefined) {
     return <LoadingScreen isDark={isDark} />;
   }
-
-  const tasks = widgetState.tasks;
   const todoCount = tasks.filter((t) => !t.completed).length;
   const doneCount = tasks.filter((t) => t.completed).length;
 
@@ -129,11 +131,12 @@ function ManageTasks() {
     syncWithServer({ actions: [{ type: "delete", taskId }], mood });
   };
 
-  const recommendation = flowzenData?.recommendation ?? null;
-  const reason = flowzenData?.reason ?? "";
-  const reward = flowzenData?.reward;
-  const timeContext = flowzenData?.timeContext ?? "";
+  const recommendation = flowzenData?.recommendation ?? outputData?.recommendation ?? null;
+  const reason = flowzenData?.reason ?? outputData?.reason ?? "";
+  const reward = flowzenData?.reward ?? outputData?.reward;
+  const timeContext = flowzenData?.timeContext ?? outputData?.timeContext ?? "";
 
+  const effectiveFocusTips = focusTips.length > 0 ? focusTips : (outputData?.focusTips ?? []);
   const activeTasks = tasks.filter((t) => !t.completed);
   const doneTasks = tasks.filter((t) => t.completed);
 
@@ -245,9 +248,9 @@ function ManageTasks() {
       )}
 
       {/* Focus Tips */}
-      {focusTips.length > 0 && recommendation && (
+      {effectiveFocusTips.length > 0 && recommendation && (
         <div className="focus-tips-section">
-          {focusTips.map((tip, i) => (
+          {effectiveFocusTips.map((tip, i) => (
             <div key={i} className="focus-tip">
               <span className="focus-tip-icon">💡</span>
               <span className="focus-tip-text">{tip}</span>
