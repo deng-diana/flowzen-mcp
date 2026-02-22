@@ -12,7 +12,7 @@ export const PRIORITY_LABELS: Record<string, string> = {
 
 export const DIFFICULTY_COLORS: Record<string, string> = {
   easy: "#788c5d",
-  medium: "#b08a4a",
+  medium: "#62D2CB",
   hard: "#c0556e",
 };
 

@@ -337,11 +337,9 @@ function ManageTasks() {
             onClick={() => setDrawerOpen(true)}
             aria-label="Open task list"
           >
-            <span className="tasks-trigger-label">My Tasks</span>
-            {todoCount > 0 && (
-              <span className="tasks-trigger-badge">{todoCount}</span>
-            )}
-            <span className="tasks-trigger-arrow">›</span>
+            <span className="tasks-trigger-label">
+              MY TASKS{todoCount > 0 ? ` (${todoCount})` : ""}
+            </span>
           </button>
           <button
             className={`flowzen-expand-btn${isFullscreen ? " active" : ""}`}
@@ -602,7 +600,7 @@ function ManageTasks() {
                 <div className="priority-chips">
                   {([
                     { value: "easy" as const, label: "Easy", color: "#788c5d" },
-                    { value: "medium" as const, label: "Med", color: "#b08a4a" },
+                    { value: "medium" as const, label: "Med", color: "#62D2CB" },
                     { value: "hard" as const, label: "Hard", color: "#c0556e" },
                   ]).map((d) => (
                     <button
@@ -616,7 +614,7 @@ function ManageTasks() {
                     </button>
                   ))}
                 </div>
-                <button className="add-btn" onClick={submitAdd}>Add ↵</button>
+                <button className="add-btn" onClick={submitAdd}>Add</button>
                 <button className="add-cancel-btn" onClick={closeAddForm} type="button" aria-label="Cancel">✕</button>
               </div>
             </div>
