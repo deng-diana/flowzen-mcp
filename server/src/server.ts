@@ -194,16 +194,27 @@ function getReward(mood: Mood, timeCtx: TimeContext): { emoji: string; text: str
   return fallbackPool[new Date().getMinutes() % fallbackPool.length];
 }
 
-const ActionSchema = z.object({
-  type: z.enum(["add", "delete", "toggle", "rename"]),
-  title: z.string().optional().describe("Task title (required for add or rename)"),
-  priority: z
-    .enum(["low", "medium", "high"])
-    .optional()
-    .describe("Task priority"),
-  dueDate: z.string().optional().describe("Due date (ISO string)"),
-  taskId: z.string().optional().describe("Task ID (required for delete/toggle/rename)"),
-});
+const ActionSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("add"),
+    title: z.string().describe("Task title"),
+    priority: z.enum(["low", "medium", "high"]).optional().describe("Task priority (default: medium)"),
+    dueDate: z.string().optional().describe("Due date as ISO date string, e.g. 2025-03-01"),
+  }),
+  z.object({
+    type: z.literal("delete"),
+    taskId: z.string().describe("ID of the task to delete"),
+  }),
+  z.object({
+    type: z.literal("toggle"),
+    taskId: z.string().describe("ID of the task to mark complete or incomplete"),
+  }),
+  z.object({
+    type: z.literal("rename"),
+    taskId: z.string().describe("ID of the task to rename"),
+    title: z.string().describe("New title for the task"),
+  }),
+]);
 
 const server = new McpServer(
   { name: "flowzen", version: "1.0.0" },
