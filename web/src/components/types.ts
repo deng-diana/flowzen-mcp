@@ -1,7 +1,7 @@
 export const PRIORITY_COLORS: Record<string, string> = {
-  high: "#ef4444",
-  medium: "#f59e0b",
-  low: "#22c55e",
+  high: "#d97757",
+  medium: "#6a9bcc",
+  low: "#788c5d",
 };
 
 export const PRIORITY_LABELS: Record<string, string> = {

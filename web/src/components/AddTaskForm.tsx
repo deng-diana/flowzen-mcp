@@ -5,9 +5,9 @@ interface AddTaskFormProps {
 }
 
 const PRIORITIES = [
-  { value: "high" as const, label: "High", color: "#ef4444" },
-  { value: "medium" as const, label: "Med", color: "#f59e0b" },
-  { value: "low" as const, label: "Low", color: "#22c55e" },
+  { value: "high" as const, label: "High", color: "#d97757" },
+  { value: "medium" as const, label: "Med", color: "#6a9bcc" },
+  { value: "low" as const, label: "Low", color: "#788c5d" },
 ];
 
 export function AddTaskForm({ onAdd }: AddTaskFormProps) {

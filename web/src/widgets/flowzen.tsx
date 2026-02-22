@@ -199,7 +199,7 @@ function ManageTasks() {
             <div className="rec-task-meta">
               <span
                 className="rec-priority-badge"
-                style={{ background: `${PRIORITY_COLORS[recommendation.priority] ?? "#f59e0b"}22`, color: PRIORITY_COLORS[recommendation.priority] ?? "#f59e0b" }}
+                style={{ background: `${PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5"}22`, color: PRIORITY_COLORS[recommendation.priority] ?? "#b0aea5" }}
               >
                 {recommendation.priority} priority
               </span>
@@ -310,10 +310,10 @@ function ManageTasks() {
                     <div className="flowzen-task-meta">
                       <span
                         className="flowzen-priority-dot"
-                        style={{ background: PRIORITY_COLORS[task.priority] ?? "#f59e0b" }}
+                        style={{ background: PRIORITY_COLORS[task.priority] ?? "#b0aea5" }}
                         title={`${task.priority} priority`}
                       />
-                      <span className="flowzen-priority-label" style={{ color: PRIORITY_COLORS[task.priority] ?? "#f59e0b" }}>
+                      <span className="flowzen-priority-label" style={{ color: PRIORITY_COLORS[task.priority] ?? "#b0aea5" }}>
                         {task.priority}
                       </span>
                     </div>
