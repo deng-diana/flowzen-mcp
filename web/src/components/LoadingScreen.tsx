@@ -4,7 +4,7 @@ export function LoadingScreen() {
       <div className="loader-ring">
         <div className="loader-ring-inner" />
       </div>
-      <div className="loading-tagline">Finding your focus...</div>
+      <div className="loading-tagline">Calibrating your compass...</div>
     </div>
   );
 }

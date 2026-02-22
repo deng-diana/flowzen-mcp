@@ -335,7 +335,7 @@ function ManageTasks() {
           <FlowzenLogo size={36} />
           <div className="flowzen-brand-text">
             <span className="flowzen-title">Flowzen</span>
-            <span className="flowzen-tagline">Do the right thing, right now.</span>
+            <span className="flowzen-tagline">Your smartest next task — powered by neuroscience.</span>
           </div>
         </div>
         <div className="flowzen-header-right">
