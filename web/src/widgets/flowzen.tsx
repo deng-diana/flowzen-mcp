@@ -4,7 +4,6 @@ import { mountWidget, useLayout, useWidgetState } from "skybridge/web";
 import { useToolInfo, useCallTool } from "../helpers";
 import { type Task } from "../components/types";
 import { LoadingScreen } from "../components/LoadingScreen";
-import { AddTaskForm } from "../components/AddTaskForm";
 
 type Mood = "great" | "okay" | "tired";
 
@@ -102,6 +101,12 @@ function ManageTasks() {
   const [editingValue, setEditingValue] = useState("");
   const editInputRef = useRef<HTMLInputElement>(null);
 
+  // Inline add form state (in ALL TASKS header)
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [addTitle, setAddTitle] = useState("");
+  const [addPriority, setAddPriority] = useState<"low" | "medium" | "high">("medium");
+  const addInputRef = useRef<HTMLInputElement>(null);
+
   const safeTasks = (prev: { tasks?: Task[] } | null | undefined): Task[] =>
     prev?.tasks ?? [];
 
@@ -180,6 +185,30 @@ function ManageTasks() {
       ],
     }));
     syncWithServer({ actions: [{ type: "add", title, priority, dueDate: dueDate ?? undefined }], mood });
+  };
+
+  const openAddForm = () => {
+    setIsAddOpen(true);
+    setTimeout(() => {
+      addInputRef.current?.focus();
+    }, 50);
+  };
+
+  const closeAddForm = () => {
+    setIsAddOpen(false);
+    setAddTitle("");
+    setAddPriority("medium");
+  };
+
+  const submitAdd = () => {
+    if (!addTitle.trim()) { closeAddForm(); return; }
+    handleAdd(addTitle.trim(), addPriority, null);
+    closeAddForm();
+  };
+
+  const handleAddKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") { e.preventDefault(); submitAdd(); }
+    else if (e.key === "Escape") { closeAddForm(); }
   };
 
   const handleToggle = (taskId: string) => {
@@ -381,21 +410,98 @@ function ManageTasks() {
       {/* Divider */}
       <div className="flowzen-divider" />
 
-      {/* Add Task */}
-      <AddTaskForm onAdd={handleAdd} />
-
-      {/* Task List */}
+      {/* ALL TASKS Section */}
       <div className="flowzen-section">
+
+        {/* Section header with inline + Add task button */}
         <div className="flowzen-section-label">
-          ALL TASKS
-          <span className="task-count-badge">{activeTasks.length} active</span>
+          <span>ALL TASKS</span>
+          {activeTasks.length > 0 && (
+            <span className="task-count-badge">{activeTasks.length} active</span>
+          )}
+          <button
+            className="add-task-inline-btn"
+            onClick={openAddForm}
+            aria-label="Add a new task"
+          >
+            + Add task
+          </button>
         </div>
 
-        {tasks.length === 0 ? (
-          <div className="flowzen-empty">
-            No tasks yet — add one above to get started.
+        {/* Inline add form — slides in below the header */}
+        {isAddOpen && (
+          <div className="inline-add-form">
+            <input
+              ref={addInputRef}
+              type="text"
+              className="add-input"
+              placeholder="What do you need to do?"
+              value={addTitle}
+              onChange={(e) => setAddTitle(e.target.value)}
+              onKeyDown={handleAddKeyDown}
+              autoComplete="off"
+              maxLength={120}
+            />
+            <div className="add-row">
+              <div className="priority-chips">
+                {([
+                  { value: "high" as const, label: "High", color: "#d97757" },
+                  { value: "medium" as const, label: "Med", color: "#6a9bcc" },
+                  { value: "low" as const, label: "Low", color: "#788c5d" },
+                ]).map((p) => (
+                  <button
+                    key={p.value}
+                    className={`priority-chip ${addPriority === p.value ? "active" : ""}`}
+                    style={addPriority === p.value ? { color: p.color, borderColor: p.color + "55", background: p.color + "11" } : {}}
+                    onClick={() => setAddPriority(p.value)}
+                    type="button"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              <button className="add-btn" onClick={submitAdd}>
+                Add ↵
+              </button>
+              <button className="add-cancel-btn" onClick={closeAddForm} type="button" aria-label="Cancel">
+                ✕
+              </button>
+            </div>
           </div>
-        ) : (
+        )}
+
+        {/* Empty State — new user, zero tasks */}
+        {tasks.length === 0 && !isAddOpen ? (
+          <div className="flowzen-empty-state">
+            <div className="empty-state-icon">🌊</div>
+            <div className="empty-state-heading">What's on your mind today?</div>
+            <div className="empty-state-sub">Your first task takes 5 seconds.</div>
+
+            {/* Primary CTA — inline add */}
+            <button className="empty-cta-btn" onClick={openAddForm}>
+              + Add your first task
+            </button>
+
+            {/* Quick-add templates */}
+            <div className="empty-templates-label">or try one of these</div>
+            <div className="empty-templates">
+              {[
+                { emoji: "📋", text: "Finish a report" },
+                { emoji: "📞", text: "Make a call" },
+                { emoji: "📧", text: "Reply to emails" },
+                { emoji: "🎯", text: "Plan my week" },
+              ].map((t) => (
+                <button
+                  key={t.text}
+                  className="empty-template-chip"
+                  onClick={() => handleAdd(t.text, "medium", null)}
+                >
+                  {t.emoji} {t.text}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : tasks.length > 0 ? (
           <div className="flowzen-task-list">
             {activeTasks.map((task) => {
               const isRecommended = recommendation?.id === task.id;
@@ -405,7 +511,6 @@ function ManageTasks() {
                   key={task.id}
                   className={`flowzen-task-item ${isRecommended ? "recommended" : ""} ${isEditing ? "editing" : ""}`}
                 >
-                  {/* Hide checkbox while editing to reduce distraction */}
                   {!isEditing && (
                     <button
                       className="flowzen-checkbox"
@@ -416,7 +521,6 @@ function ManageTasks() {
 
                   <div className="flowzen-task-content">
                     {isEditing ? (
-                      /* ── Inline Edit Input ── */
                       <input
                         ref={editInputRef}
                         className="flowzen-task-edit-input"
@@ -428,7 +532,6 @@ function ManageTasks() {
                         aria-label="Edit task title"
                       />
                     ) : (
-                      /* ── Normal Title — double click to edit ── */
                       <span
                         className="flowzen-task-title"
                         onDoubleClick={() => handleDoubleClick(task)}
@@ -452,7 +555,6 @@ function ManageTasks() {
                     )}
                   </div>
 
-                  {/* Editing: show Save/Cancel hint; Normal: show NOW badge + delete */}
                   {isEditing ? (
                     <div className="flowzen-edit-actions">
                       <span className="flowzen-edit-hint">↵ save · esc cancel</span>
@@ -500,7 +602,7 @@ function ManageTasks() {
               </>
             )}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
