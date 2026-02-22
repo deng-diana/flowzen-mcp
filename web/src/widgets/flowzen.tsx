@@ -1,6 +1,7 @@
 import "@/index.css";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { mountWidget, useLayout, useWidgetState, useDisplayMode } from "skybridge/web";
+import { mountWidget, useLayout, useWidgetState } from "skybridge/web";
+import React from "react";
 import { useToolInfo, useCallTool } from "../helpers";
 import { type Task } from "../components/types";
 import { LoadingScreen } from "../components/LoadingScreen";
@@ -58,10 +59,10 @@ function FlowzenLogo({ size = 36 }: { size?: number }) {
 }
 
 function ManageTasks() {
-  const { output, isPending } = useToolInfo<"flowzen">();
+  const { output } = useToolInfo<"flowzen">();
   const { callToolAsync } = useCallTool("flowzen");
   const { maxHeight } = useLayout();
-  const [displayMode, setDisplayMode] = useDisplayMode();
+  const [displayMode, setDisplayMode] = useState<string>("inline");
 
 
   const [mood, setMood] = useState<Mood>("okay");
@@ -85,52 +86,26 @@ function ManageTasks() {
   const safeTasks = (prev: { tasks?: Task[] } | null | undefined): Task[] =>
     prev?.tasks ?? [];
 
-  // Helper: apply server result to local state (used by auto-fetch and syncWithServer)
-  const applyServerResult = useCallback((result: { structuredContent?: FlowzenOutput } | null | undefined) => {
-    const sc = result?.structuredContent as FlowzenOutput | undefined;
-    if (sc?.tasks) {
-      setWidgetState(() => ({ tasks: sc.tasks }));
-      if (sc.recommendation !== undefined) {
-        setFlowzenData({
-          recommendation: sc.recommendation,
-          reason: sc.reason,
-          reward: sc.reward,
-          timeContext: sc.timeContext,
-        });
-        setFocusTips(sc.focusTips ?? []);
-      }
-    }
-  }, []);
+  // Skybridge auto-unwraps structuredContent into output.
+  // output is null until the host (Claude) calls the tool.
+  const outputData = output as FlowzenOutput | null;
 
-  // Auto-fetch on mount if no data yet (cold open).
-  // callToolAsync returns data directly — useToolInfo.output is NOT updated by callToolAsync.
-  const hasFetchedRef = useRef(false);
+  // Sync widgetState + flowzenData when output changes (host calls the tool)
   useEffect(() => {
-    if (!hasFetchedRef.current && widgetState == null && output == null) {
-      hasFetchedRef.current = true;
-      callToolAsync({ mood }).then(applyServerResult).catch(() => {});
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Sync widget state when Claude calls the tool (output updated by host)
-  useEffect(() => {
-    const out = output as FlowzenOutput | null | undefined;
-    if (out?.tasks) {
-      setWidgetState(() => ({ tasks: out.tasks }));
-      if (out.recommendation !== undefined) {
+    if (outputData?.tasks) {
+      setWidgetState(() => ({ tasks: outputData.tasks }));
+      if (outputData.recommendation !== undefined) {
         setFlowzenData({
-          recommendation: out.recommendation,
-          reason: out.reason,
-          reward: out.reward,
-          timeContext: out.timeContext,
+          recommendation: outputData.recommendation,
+          reason: outputData.reason,
+          reward: outputData.reward,
+          timeContext: outputData.timeContext,
         });
-        setFocusTips(out.focusTips ?? []);
+        setFocusTips(outputData.focusTips ?? []);
       }
     }
   }, [output]);
 
-  // output is null (not undefined) when no tool call has happened yet per Skybridge internals
-  const outputData = (output ?? null) as FlowzenOutput | null;
   const tasks = widgetState?.tasks ?? outputData?.tasks ?? null;
 
   if (tasks === null) {
@@ -605,4 +580,28 @@ function ManageTasks() {
 
 export default ManageTasks;
 
-mountWidget(<ManageTasks />);
+class WidgetErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: string }
+> {
+  state = { hasError: false, error: "" };
+  static getDerivedStateFromError(e: Error) {
+    return { hasError: true, error: e.message };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 24, background: "#FFE9D7", borderRadius: 20, color: "#d97757", fontFamily: "sans-serif" }}>
+          <strong>Flowzen Error:</strong> {this.state.error}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+mountWidget(
+  <WidgetErrorBoundary>
+    <ManageTasks />
+  </WidgetErrorBoundary>
+);
