@@ -206,13 +206,13 @@ function getReason(mood: Mood, timeCtx: TimeContext, task: Task | null): string 
 }
 
 const REWARDS = [
-  { emoji: "🎵", text: "Put on an album you love and do nothing else for 15 minutes. Music activates your brain's reward circuits — this is recovery, not procrastination." },
-  { emoji: "🚶", text: "Take a 10-minute walk outside. Physical movement clears cortisol and increases BDNF — the molecule that helps your brain learn and grow." },
-  { emoji: "🎮", text: "Guilt-free gaming for 20 minutes. Play activates dopamine without the pressure of productivity — your nervous system needs this." },
-  { emoji: "🍵", text: "Make a cup of tea and do nothing for 10 minutes. Deliberate rest is cognitively restorative. Your brain works during rest — let it." },
-  { emoji: "📞", text: "Call a friend or family member. Social connection releases oxytocin and reduces cortisol — it literally makes you healthier and more focused." },
-  { emoji: "🎬", text: "Watch one episode of something you enjoy. Narrative engagement gives your task-focused brain a structured rest without the guilt." },
-  { emoji: "🧘", text: "5 minutes of slow breathing (4 in, 6 out). This activates your parasympathetic nervous system and resets your stress response." },
+  { emoji: "🎵", text: "You've earned this — put on your favourite album, close your eyes, and let the music take over for 15 minutes. No phone, no notifications. Just you and the music you love." },
+  { emoji: "🚶", text: "Step outside and walk — no destination needed. Even 10 minutes of fresh air helps your brain breathe, your shoulders drop, and your thinking get clearer. You deserve the break." },
+  { emoji: "🎮", text: "Time to play — genuinely, guilt-free. Jump into a game you love for 20 minutes. Your brain has earned the fun, and fun is what keeps you going long-term." },
+  { emoji: "🍵", text: "Make yourself a warm drink and just... be. 10 minutes of doing nothing is not laziness — it's how great minds recharge. Sit with it. You've worked hard today." },
+  { emoji: "📞", text: "Think of someone who makes you smile. Call or text them right now — not to talk about work, just to connect. That's the real stuff that fills your cup back up." },
+  { emoji: "🎬", text: "Pick an episode of something you've been meaning to watch, curl up, and enjoy it without guilt. Your focused self will thank your rested self tomorrow." },
+  { emoji: "🧘", text: "Take 5 slow breaths: in for 4 counts, out for 6. Feel your shoulders soften. You carried something important today — let your body know it's okay to relax now." },
 ];
 
 function getReward(mood: Mood, timeCtx: TimeContext): { emoji: string; text: string } {

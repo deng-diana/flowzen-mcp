@@ -1529,49 +1529,53 @@ body {
   margin-top: 1.5rem;
 }
 
-/* ── In-Progress Bar (after "Start this task") ── */
-.in-progress-bar {
+/* ── In-Progress Heading ── */
+.in-progress-heading {
+  font-family: "Lora", Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  font-style: italic;
+  color: #2d2926;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+/* ── In-Progress Block (after "I'm ready") — full orange highlight ── */
+.in-progress-block {
+  background: #FF7148;
+  border-radius: 0.875rem;
+  padding: 0.875rem 1rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 4px 18px rgba(255, 113, 72, 0.28);
+}
+
+.in-progress-top-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: #ffffff;
-  border: 1.5px solid rgba(120, 140, 93, 0.35);
-  border-radius: 0.875rem;
-  padding: 0.625rem 0.875rem;
-  margin-bottom: 0.625rem;
-  box-shadow: 0 1px 6px rgba(120, 140, 93, 0.1);
+  gap: 0.625rem;
 }
 
 .in-progress-dot {
-  width: 7px;
-  height: 7px;
-  min-width: 7px;
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
   border-radius: 50%;
-  background: #788c5d;
-  animation: in-progress-pulse 1.8s ease-in-out infinite;
+  background: rgba(255, 255, 255, 0.9);
+  animation: in-progress-pulse 2s ease-in-out infinite;
   flex-shrink: 0;
 }
 
 @keyframes in-progress-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.55; transform: scale(0.8); }
-}
-
-.in-progress-label {
-  font-family: "Poppins", Arial, sans-serif;
-  font-size: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #788c5d;
-  flex-shrink: 0;
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.5); }
+  50%       { opacity: 0.65; transform: scale(0.78); box-shadow: 0 0 0 5px rgba(255,255,255,0); }
 }
 
 .in-progress-task-title {
   font-family: "Lora", Georgia, serif;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 600;
-  color: #2d2926;
+  color: #ffffff;
   flex: 1;
   min-width: 0;
   white-space: nowrap;
@@ -1579,11 +1583,12 @@ body {
   text-overflow: ellipsis;
 }
 
+/* Done button — white background, orange text */
 .mark-done-btn {
   flex-shrink: 0;
-  padding: 0.25rem 0.75rem;
-  background: #788c5d;
-  color: #ffffff;
+  padding: 0.3rem 0.875rem;
+  background: #ffffff;
+  color: #FF7148;
   border: none;
   border-radius: 9999px;
   font-family: "Poppins", Arial, sans-serif;
@@ -1593,16 +1598,107 @@ body {
   cursor: pointer;
   transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
   white-space: nowrap;
+  box-shadow: 0 1px 6px rgba(45, 41, 38, 0.12);
 }
 
 .mark-done-btn:hover {
-  background: #5e7046;
+  background: #fff7f4;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(120, 140, 93, 0.3);
+  box-shadow: 0 3px 10px rgba(45, 41, 38, 0.18);
 }
 
 .mark-done-btn:active {
   transform: scale(0.97);
+}
+
+/* ── Focus Tips Card ── */
+.focus-tips-card {
+  background: #EAF8FF;
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.focus-tips-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 0.5rem;
+}
+
+.focus-tips-icon {
+  font-size: 0.875rem;
+}
+
+.focus-tips-title {
+  font-family: "Poppins", Arial, sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #3a86c4;
+}
+
+.focus-tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.focus-tip-item {
+  font-family: "Lora", Georgia, serif;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: #2d4a6a;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.focus-tip-item::before {
+  content: "·";
+  position: absolute;
+  left: 0.25rem;
+  color: #3a86c4;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+/* ── Reward Card Block ── */
+.reward-card-block {
+  background: #FFF0EA;
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  margin-bottom: 0.875rem;
+}
+
+.reward-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 0.5rem;
+}
+
+.reward-card-icon {
+  font-size: 0.875rem;
+}
+
+.reward-card-title {
+  font-family: "Poppins", Arial, sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #c06040;
+}
+
+.reward-card-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
 }
 
 /* ── Coaching Reveal (fades in after starting task) ── */

@@ -352,26 +352,28 @@ function ManageTasks() {
         </div>
       </div>
 
-      {/* Mood Selector */}
-      <div className="mood-card">
-        <div className="mood-card-label">HOW ARE YOU FEELING?</div>
-        <div className="mood-selector">
-          {MOOD_OPTIONS.map((m) => (
-            <button
-              key={m.value}
-              className={`mood-btn ${mood === m.value ? "active" : ""}`}
-              onClick={() => handleMoodChange(m.value)}
-              aria-pressed={mood === m.value}
-            >
-              <span className="mood-emoji">{m.emoji}</span>
-              <span className="mood-text-group">
-                <span className="mood-label">{m.label}</span>
-                <span className="mood-sub">{m.sub}</span>
-              </span>
-            </button>
-          ))}
+      {/* Mood Selector — hidden while a task is in progress */}
+      {!isAccepted && (
+        <div className="mood-card">
+          <div className="mood-card-label">HOW ARE YOU FEELING?</div>
+          <div className="mood-selector">
+            {MOOD_OPTIONS.map((m) => (
+              <button
+                key={m.value}
+                className={`mood-btn ${mood === m.value ? "active" : ""}`}
+                onClick={() => handleMoodChange(m.value)}
+                aria-pressed={mood === m.value}
+              >
+                <span className="mood-emoji">{m.emoji}</span>
+                <span className="mood-text-group">
+                  <span className="mood-label">{m.label}</span>
+                  <span className="mood-sub">{m.sub}</span>
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Recommendation Card — skeleton during loading, animated card on arrive */}
       {isRefreshing ? (
@@ -465,41 +467,53 @@ function ManageTasks() {
           {/* ── AFTER START: in-progress state + coaching reveal ── */}
           {isAccepted && (
             <>
-              {/* In-progress bar */}
-              <div className="in-progress-bar">
-                <span className="in-progress-dot" />
-                <span className="in-progress-label">IN PROGRESS</span>
-                <span className="in-progress-task-title">{recommendation.title}</span>
-                <button
-                  className="mark-done-btn"
-                  onClick={() => handleToggle(recommendation.id, recommendation.id)}
-                >
-                  ✓ Done
-                </button>
+              {/* Contextual heading */}
+              <div className="in-progress-heading">
+                {mood === "great" ? "🚀 You're on fire — let's make it count." : mood === "tired" ? "🌱 Small step, big momentum — you've got this." : "✨ One thing at a time — this is the one."}
               </div>
 
-              {/* Coaching section — fades in after commitment (Why is already shown above) */}
+              {/* In-progress block — full orange highlight */}
+              <div className="in-progress-block">
+                <div className="in-progress-top-row">
+                  <span className="in-progress-dot" />
+                  <span className="in-progress-task-title">{recommendation.title}</span>
+                  <button
+                    className="mark-done-btn"
+                    onClick={() => {
+                      handleToggle(recommendation.id, recommendation.id);
+                      setAcceptedTaskId(null);
+                    }}
+                  >
+                    ✓ Done
+                  </button>
+                </div>
+              </div>
+
+              {/* Coaching section */}
               <div className="coaching-reveal">
                 {/* Focus Tips */}
                 {effectiveFocusTips.length > 0 && (
-                  <div className="focus-tips-section">
-                    {effectiveFocusTips.slice(0, 2).map((tip, i) => (
-                      <div key={i} className="focus-tip">
-                        <span className="focus-tip-icon">💡</span>
-                        <span className="focus-tip-text">{cleanTip(tip)}</span>
-                      </div>
-                    ))}
+                  <div className="focus-tips-card">
+                    <div className="focus-tips-card-header">
+                      <span className="focus-tips-icon">💡</span>
+                      <span className="focus-tips-title">Tips to stay in the zone</span>
+                    </div>
+                    <ul className="focus-tips-list">
+                      {effectiveFocusTips.slice(0, 2).map((tip, i) => (
+                        <li key={i} className="focus-tip-item">{cleanTip(tip)}</li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 
                 {/* Reward */}
                 {reward && (
-                  <div className="reward-section">
-                    <div className="reward-header">
-                      <span className="reward-icon">🎁</span>
-                      <span className="reward-title">YOU DESERVE AFTER</span>
+                  <div className="reward-card-block">
+                    <div className="reward-card-header">
+                      <span className="reward-card-icon">🎁</span>
+                      <span className="reward-card-title">YOU DESERVE AFTER</span>
                     </div>
-                    <div className="reward-card">
+                    <div className="reward-card-body">
                       <span className="reward-emoji">{reward.emoji}</span>
                       <span className="reward-text">{reward.text}</span>
                     </div>

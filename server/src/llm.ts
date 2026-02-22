@@ -77,8 +77,8 @@ export async function callClaudeForRecommendation(
 Your job:
 1. Recommend ONE task from the list the user should do right now (or null if mood is tired and all tasks are high priority).${context.excludedTaskIds?.length ? " Avoid excluded task IDs." : ""}
 2. Explain WHY in 2-3 warm sentences — reference neuroscience or positive psychology.
-3. Add ONE brief wellbeing reward nudge with an emoji.
-4. Provide 1-2 focus_tips: practical, warm suggestions (e.g. phone aside, lo-fi music, 25-min timer).
+3. Add ONE warm, caring reward suggestion with an emoji — something the user would genuinely enjoy and feel good about (e.g. calling a friend, listening to a favourite song, going for a walk, watching an episode guilt-free). Write it as if you care about their happiness, not just their productivity. Be specific and human.
+4. Provide 1-2 focus_tips: ultra-specific, actionable suggestions tailored to the task and mood. Examples: "Put your phone face-down across the room before you start", "Open only the ONE tab you need — close everything else", "Set a 25-min timer so your brain knows there's a finish line", "Play lo-fi or ambient music at low volume — lyrics distract, rhythm focuses", "If your mind wanders, write the distraction down and return — don't fight it". Avoid generic advice like "focus" or "take breaks". Be concrete.
 5. Keep total response under 150 words.
 
 Respond in JSON only — no markdown, no code block:
