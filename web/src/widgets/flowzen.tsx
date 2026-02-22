@@ -104,7 +104,7 @@ function ManageTasks() {
   const outputData = output as FlowzenOutput | undefined;
   const tasks = widgetState?.tasks ?? outputData?.tasks;
 
-  if (isPending || tasks === undefined) {
+  if (tasks === undefined) {
     return <LoadingScreen />;
   }
 
