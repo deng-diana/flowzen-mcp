@@ -145,7 +145,7 @@ function ManageTasks() {
   const handleMoodChange = (newMood: Mood) => {
     setMood(newMood);
     setExcludedIds([]);
-    syncWithServer({ mood: newMood });
+    syncWithServer({ mood: newMood }, true);
   };
 
   const handleAdd = (title: string, priority: "low" | "medium" | "high", dueDate: string | null) => {
@@ -270,7 +270,7 @@ function ManageTasks() {
     if (!recommendation) return;
     const newExcluded = [...excludedIds, recommendation.id];
     setExcludedIds(newExcluded);
-    syncWithServer({ excludedTaskIds: newExcluded, mood });
+    syncWithServer({ excludedTaskIds: newExcluded, mood }, true);
   };
 
   const handleStartTask = () => {
@@ -352,12 +352,12 @@ function ManageTasks() {
 
       {/* Recommendation Card */}
       {recommendation ? (
-        <div className="recommendation-section">
+        <div className={`recommendation-section${isRefreshing ? " refreshing" : ""}`}>
           <div className="rec-header">
             <span className="rec-icon">⚡</span>
             <span className="rec-title">DO THIS NOW</span>
-            <button className="try-another-btn" onClick={handleTryAnother}>
-              Show me another
+            <button className="try-another-btn" onClick={handleTryAnother} disabled={isRefreshing}>
+              {isRefreshing ? "..." : "Show me another"}
             </button>
           </div>
           <div className="rec-card">
