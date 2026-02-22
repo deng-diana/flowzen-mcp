@@ -6,13 +6,28 @@ Before writing code, first explore the project structure, then invoke the `mcp-a
 
 ---
 
+## Deployment — IMPORTANT
+
+**git commit + push = 自动部署（热更新）**
+
+```bash
+git add <files>
+git commit -m "your message"
+git push origin main   # ← 这一步触发 Alpic CI/CD，自动 build + deploy
+```
+
+Push 到 `main` 后 1–2 分钟生效。**不需要手动运行 `pnpm deploy` 或 `alpic deploy`**。
+
+Production URL: `https://flowzen-mcp-dfdb5406.alpic.live/mcp`
+
+---
+
 ## Commands
 
 ```bash
 pnpm dev          # Start dev server at http://localhost:3000 (Skybridge devtools at root)
-pnpm build        # Build for production
-pnpm start        # Start production server
-pnpm deploy       # Deploy via Alpic
+pnpm build        # Build locally to verify (optional before commit)
+pnpm start        # Start production server locally
 
 # Supabase
 supabase link                    # Link to remote project (once)
@@ -20,9 +35,9 @@ supabase db push                 # Apply migrations to remote DB
 supabase db reset --linked       # Reset remote DB (destructive)
 supabase migration new <name>    # Create a new migration file
 
-# Tunnel for Claude testing
+# Tunnel for ChatGPT/Claude testing against local dev server
 cloudflared tunnel --url http://localhost:3000
-# Then add https://<tunnel>.trycloudflare.com/mcp in Claude settings
+# Then add https://<tunnel>.trycloudflare.com/mcp in Claude/ChatGPT settings
 ```
 
 No test suite is configured. No linting scripts are defined in `package.json`.
@@ -53,24 +68,23 @@ AI Assistant → POST /mcp → Express → Clerk auth (prod only) → McpServer
 | `supabase.ts` | All DB operations (`fetchTasks`, `executeActions`) — **do not modify** |
 | `server.ts` | MCP tool definition, recommendation engine, neuroscience reasons, rewards |
 
-The MCP tool is registered as widget `"manage-tasks"` on a `McpServer` from `skybridge/server`. In development, auth is skipped and `userId` defaults to `"dev-user"`. In production, Clerk JWT extracts `userId` from `authInfo.extra`.
+The MCP tool is registered as widget `"flowzen"` on a `McpServer` from `skybridge/server`. In development, auth is skipped and `userId` defaults to `"dev-user-demo"`. In production, Clerk JWT extracts `userId` from `authInfo.extra`.
 
 ### Frontend (`web/src/`)
 
 | File | Role |
 |------|------|
-| `widgets/manage-tasks.tsx` | Main widget — all UI logic lives here |
+| `widgets/flowzen.tsx` | Main widget — all UI logic lives here |
 | `index.css` | All styles (no CSS modules, no Tailwind) |
 | `helpers.ts` | `useToolInfo`, `useCallTool` hooks from Skybridge |
-| `components/types.ts` | `Task`, `Status` types and `getTaskStatus()` helper |
-| `components/AddTaskForm.tsx` | Task creation form |
+| `components/types.ts` | `Task` type |
 | `components/LoadingScreen.tsx` | Loading state component |
 
 The widget uses Skybridge hooks:
-- `useToolInfo<"manage-tasks">()` — reactive server output (`output`, `isPending`)
-- `useCallTool("manage-tasks")` — call the MCP tool (`callToolAsync`)
+- `useToolInfo<"flowzen">()` — reactive server output (`output`, `isPending`)
+- `useCallTool("flowzen")` — call the MCP tool (`callToolAsync`)
 - `useWidgetState<T>()` — persisted widget state (survives re-renders, visible to LLM)
-- `useLayout()` — provides `theme` (`"dark"` | `"light"`)
+- `useLayout()` — provides `maxHeight`, `theme` (`"dark"` | `"light"`)
 
 Optimistic updates pattern: mutate `widgetState` immediately, then call `syncWithServer()` which calls `callToolAsync` and reconciles with the server response.
 
