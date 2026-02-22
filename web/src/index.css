@@ -1596,15 +1596,12 @@ body {
   font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  transition: background 0.15s, transform 0.1s;
   white-space: nowrap;
-  box-shadow: 0 1px 6px rgba(45, 41, 38, 0.12);
 }
 
 .mark-done-btn:hover {
   background: #fff7f4;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(45, 41, 38, 0.18);
 }
 
 .mark-done-btn:active {
@@ -1613,7 +1610,7 @@ body {
 
 /* ── Focus Tips Card ── */
 .focus-tips-card {
-  background: #EAF8FF;
+  background: #ffffff;
   border-radius: 0.75rem;
   padding: 0.875rem 1rem;
   margin-bottom: 0.75rem;
@@ -1669,7 +1666,7 @@ body {
 
 /* ── Reward Card Block ── */
 .reward-card-block {
-  background: #FFF0EA;
+  background: #ffffff;
   border-radius: 0.75rem;
   padding: 0.875rem 1rem;
   margin-bottom: 0.875rem;
