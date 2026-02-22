@@ -436,7 +436,7 @@ function ManageTasks() {
               ref={addInputRef}
               type="text"
               className="add-input"
-              placeholder="What do you need to do?"
+              placeholder='e.g. "Finish project proposal"'
               value={addTitle}
               onChange={(e) => setAddTitle(e.target.value)}
               onKeyDown={handleAddKeyDown}
@@ -494,29 +494,10 @@ function ManageTasks() {
               ))}
             </div>
 
-            {/* Primary CTA — inline add */}
+            {/* Primary CTA — opens inline add form */}
             <button className="empty-cta-btn" onClick={openAddForm}>
               + Add your first task
             </button>
-
-            {/* Quick-add templates */}
-            <div className="empty-templates-label">or try one of these</div>
-            <div className="empty-templates">
-              {[
-                { emoji: "📋", text: "Finish a report" },
-                { emoji: "📞", text: "Make a call" },
-                { emoji: "📧", text: "Reply to emails" },
-                { emoji: "🎯", text: "Plan my week" },
-              ].map((t) => (
-                <button
-                  key={t.text}
-                  className="empty-template-chip"
-                  onClick={() => handleAdd(t.text, "medium", null)}
-                >
-                  {t.emoji} {t.text}
-                </button>
-              ))}
-            </div>
           </div>
         ) : tasks.length > 0 ? (
           <div className="flowzen-task-list">
