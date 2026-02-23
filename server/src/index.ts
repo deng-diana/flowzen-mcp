@@ -56,7 +56,8 @@ app.get("/.well-known/oauth-authorization-server", (req, res) => {
 });
 
 // /oauth/authorize — immediately redirect back with code (Claude.ai handles the user flow)
-app.get("/oauth/authorize", (req, res) => {
+// Also handle /authorize (standard OAuth path that Claude.ai may request directly)
+app.get(["/oauth/authorize", "/authorize"], (req, res) => {
   const redirectUri = req.query.redirect_uri as string;
   const state = req.query.state as string | undefined;
   if (!redirectUri) {
