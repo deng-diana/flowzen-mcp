@@ -50,8 +50,8 @@ This is a **Skybridge MCP app** — an MCP server that exposes tools and a React
 
 ### Request Flow
 
-```
-AI Assistant → POST /mcp → Express → Clerk auth (prod only) → McpServer
+``` 
+AI Assistant → POST /mcp → Express → McpServer
   → executeActions() on Supabase → fetchTasks() → recommendation engine
   → returns { structuredContent: { tasks, recommendation, reason, reward, timeContext } }
                                                            ↓
@@ -62,13 +62,13 @@ AI Assistant → POST /mcp → Express → Clerk auth (prod only) → McpServer
 
 | File | Role |
 |------|------|
-| `index.ts` | Express app setup, Clerk auth middleware, Skybridge devtools — **do not modify** |
-| `middleware.ts` | Clerk MCP middleware wiring — **do not modify** |
+| `index.ts` | Express app setup, OAuth discovery/auth endpoints, Skybridge devtools — **do not modify** |
+| `middleware.ts` | MCP HTTP transport wiring — **do not modify** |
 | `env.ts` | Validated env vars via `@t3-oss/env-core` + zod |
 | `supabase.ts` | All DB operations (`fetchTasks`, `executeActions`) — **do not modify** |
 | `server.ts` | MCP tool definition, recommendation engine, neuroscience reasons, rewards |
 
-The MCP tool is registered as widget `"flowzen"` on a `McpServer` from `skybridge/server`. In development, auth is skipped and `userId` defaults to `"dev-user-demo"`. In production, Clerk JWT extracts `userId` from `authInfo.extra`.
+The MCP tool is registered as widget `"flowzen"` on a `McpServer` from `skybridge/server`. The app exposes OAuth discovery + token endpoints in `index.ts`. Tool handlers currently default `userId` to `"dev-user-demo"` when auth info is absent.
 
 ### Frontend (`web/src/`)
 
@@ -93,18 +93,17 @@ Optimistic updates pattern: mutate `widgetState` immediately, then call `syncWit
 `tasks` table:
 - `id` (uuid), `user_id` (text), `title` (text), `completed` (bool)
 - `priority` — `"low"` | `"medium"` | `"high"`
-- `status` — `"todo"` | `"in_progress"` | `"done"`
+- `difficulty` — `"easy"` | `"medium"` | `"hard"`
 - `due_date` (date, nullable), `created_at` (timestamptz)
 
 RLS is enabled. All queries use the service role key and filter by `user_id`.
 
 ### Recommendation Engine (in `server.ts`)
 
-Pure rule-based logic, no LLM calls:
-1. `getTimeContext(hour)` → maps current hour to one of 7 time windows
-2. `getRecommendation(tasks, mood, timeCtx)` → selects priority tier from mood×time matrix, then finds best matching task (prefers tasks with nearer due dates)
-3. `getReason(mood, timeCtx, task)` → returns a neuroscience explanation string
-4. `getReward(mood)` → selects a recovery activity (rotates by minute)
+Hybrid logic:
+1. Rule-based fallback computes recommendation/reason/reward
+2. If `ANTHROPIC_API_KEY` exists, LLM recommendation can override fallback
+3. Recommendation/completion telemetry is logged in `recommendation_log` and `user_completion_events`
 
 ### Environment Variables
 
@@ -112,8 +111,15 @@ Required in `.env`:
 ```
 SUPABASE_URL
 SUPABASE_SERVICE_ROLE_KEY
+```
+
+Optional:
+```
+ANTHROPIC_API_KEY
+MCP_SERVER_URL
 CLERK_SECRET_KEY
-CLERK_PUBLISHABLE_KEY   # also accepts NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+CLERK_PUBLISHABLE_KEY
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ```
 
 ### Key Constraints

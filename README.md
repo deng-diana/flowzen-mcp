@@ -51,7 +51,7 @@ Tell Flowzen what you need to do and how you're feeling. It gives you **one answ
 | Backend | Node.js / TypeScript |
 | Frontend | React widget |
 | Database | Supabase (Postgres + RLS) |
-| Auth | Clerk (Google OAuth) |
+| Auth | MCP OAuth discovery + self-contained OAuth endpoints |
 | Hosting | Alpic |
 
 ---
@@ -64,7 +64,6 @@ Tell Flowzen what you need to do and how you're feeling. It gives you **one answ
 - pnpm — `npm install -g pnpm`
 - Supabase CLI — `brew install supabase/tap/supabase`
 - Supabase project at [supabase.com/dashboard](https://supabase.com/dashboard)
-- Clerk project at [clerk.com/dashboard](https://clerk.com/dashboard)
 
 ### Setup
 
@@ -85,8 +84,9 @@ Fill in your keys:
 ```
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-CLERK_SECRET_KEY=sk_test_xxxxx
-CLERK_PUBLISHABLE_KEY=pk_test_xxxxx
+# Optional
+# ANTHROPIC_API_KEY=...
+# MCP_SERVER_URL=https://your-public-base-url
 ```
 
 **3. Link Supabase and push migrations**
@@ -119,7 +119,7 @@ Add `https://<tunnel>.trycloudflare.com/mcp` as a remote MCP server in Claude se
 ```
 server/src/
   index.ts        ← Express app setup (do not modify)
-  middleware.ts   ← Clerk auth wiring (do not modify)
+  middleware.ts   ← MCP transport wiring (do not modify)
   supabase.ts     ← DB operations (do not modify)
   server.ts       ← MCP tool, recommendation engine, neuroscience logic
 
@@ -143,10 +143,10 @@ supabase/
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | Primary key |
-| `user_id` | text | Clerk user ID |
+| `user_id` | text | Logical user ID |
 | `title` | text | Task name |
 | `priority` | text | `"low"` \| `"medium"` \| `"high"` |
-| `status` | text | `"todo"` \| `"in_progress"` \| `"done"` |
+| `difficulty` | text | `"easy"` \| `"medium"` \| `"hard"` |
 | `completed` | bool | Completion flag |
 | `due_date` | date | Optional |
 | `created_at` | timestamptz | Auto-set |
@@ -169,10 +169,12 @@ supabase migration new <name>    # Create a new migration
 ## Deploy to Production
 
 ```bash
-pnpm deploy
+git add <files>
+git commit -m "your message"
+git push origin main
 ```
 
-Uses [Alpic](https://alpic.ai/) for deployment. Then add your deployed URL with `/mcp` appended as a remote MCP server in Claude settings.
+In this repo, pushing to `main` triggers Alpic auto-deploy. Then use your deployed URL with `/mcp` appended as a remote MCP server in Claude settings.
 
 ---
 
