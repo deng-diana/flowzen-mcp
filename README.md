@@ -51,7 +51,7 @@ Tell Flowzen what you need to do and how you're feeling. It gives you **one answ
 | Backend | Node.js / TypeScript |
 | Frontend | React widget |
 | Database | Supabase (Postgres + RLS) |
-| Auth | MCP OAuth discovery + self-contained OAuth endpoints |
+| Auth | Public mode on Alpic (no OAuth) or protected mode via Alpic gateway |
 | Hosting | Alpic |
 
 ---
@@ -175,6 +175,25 @@ git push origin main
 ```
 
 In this repo, pushing to `main` triggers Alpic auto-deploy. Then use your deployed URL with `/mcp` appended as a remote MCP server in Claude settings.
+
+After deploy, run:
+
+```bash
+BASE_URL=https://flowzen-mcp-dfdb5406.alpic.live pnpm probe:prod
+```
+
+This checks initialize on `/` and `/mcp`, and prints OAuth endpoint statuses.
+
+---
+
+## OAuth on Alpic (Important)
+
+On **public** Alpic deployments, OAuth discovery and authorization routes often return `404` from the public edge. This is expected.
+
+- Public mode focus: reachable MCP endpoint (`/` or `/mcp`)
+- Protected mode focus: configure auth provider in Alpic; OAuth routes are handled by Alpic gateway
+
+So if MCP initialize works but OAuth routes are `404`, your app can still be healthy in public mode.
 
 ---
 

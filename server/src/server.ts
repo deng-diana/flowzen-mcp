@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import { McpServer } from "skybridge/server";
 import { z } from "zod";
 import { env } from "./env.js";
@@ -7,13 +6,6 @@ import { callClaudeForRecommendation } from "./llm.js";
 import { fetchUserInsights, logRecommendation, recordCompletion } from "./user-insights.js";
 
 const SERVER_URL = process.env.MCP_SERVER_URL ?? "http://localhost:3000";
-
-function getBaseUrlFromRequest(req: any): string {
-  if (process.env.MCP_SERVER_URL) return process.env.MCP_SERVER_URL;
-  const proto = req?.headers?.["x-forwarded-proto"] || req?.protocol || "https";
-  const host = req?.headers?.["x-forwarded-host"] || req?.headers?.host || "localhost:3000";
-  return `${proto}://${host}`;
-}
 
 async function fetchTasksWithDifficulty(userId: string) {
   const { data, error } = await supabase
@@ -278,66 +270,6 @@ const server = new McpServer(
   { name: "flowzen", version: "1.0.0" },
   { capabilities: {} },
 )
-  // OAuth discovery + token endpoints are registered at McpServer middleware level
-  // so they are available even when production runtime boots via skybridge/server.
-  .use("/.well-known/oauth-protected-resource", (req: any, res: any, next: any) => {
-    if (req.method !== "GET") return next();
-    const base = getBaseUrlFromRequest(req);
-    res.json({
-      resource: base,
-      authorization_servers: [base],
-    });
-  })
-  .use("/.well-known/oauth-authorization-server", (req: any, res: any, next: any) => {
-    if (req.method !== "GET") return next();
-    const base = getBaseUrlFromRequest(req);
-    res.json({
-      issuer: base,
-      authorization_endpoint: `${base}/oauth/authorize`,
-      token_endpoint: `${base}/oauth/token`,
-      response_types_supported: ["code"],
-      grant_types_supported: ["authorization_code"],
-      code_challenge_methods_supported: ["S256"],
-      token_endpoint_auth_methods_supported: ["none"],
-      scopes_supported: ["mcp"],
-    });
-  })
-  .use("/oauth/authorize", (req: any, res: any, next: any) => {
-    if (req.method !== "GET") return next();
-    const redirectUri = req.query?.redirect_uri as string | undefined;
-    const state = req.query?.state as string | undefined;
-    if (!redirectUri) {
-      res.status(400).json({ error: "invalid_request", error_description: "redirect_uri required" });
-      return;
-    }
-    const code = randomBytes(16).toString("hex");
-    const url = new URL(redirectUri);
-    url.searchParams.set("code", code);
-    if (state) url.searchParams.set("state", state);
-    res.redirect(url.toString());
-  })
-  .use("/authorize", (req: any, res: any, next: any) => {
-    if (req.method !== "GET") return next();
-    const redirectUri = req.query?.redirect_uri as string | undefined;
-    const state = req.query?.state as string | undefined;
-    if (!redirectUri) {
-      res.status(400).json({ error: "invalid_request", error_description: "redirect_uri required" });
-      return;
-    }
-    const code = randomBytes(16).toString("hex");
-    const url = new URL(redirectUri);
-    url.searchParams.set("code", code);
-    if (state) url.searchParams.set("state", state);
-    res.redirect(url.toString());
-  })
-  .use("/oauth/token", (req: any, res: any, next: any) => {
-    if (req.method !== "POST") return next();
-    res.json({
-      access_token: randomBytes(32).toString("hex"),
-      token_type: "bearer",
-      expires_in: 86400,
-    });
-  })
   .registerWidget(
   "flowzen",
   {

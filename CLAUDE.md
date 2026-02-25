@@ -62,13 +62,13 @@ AI Assistant → POST /mcp → Express → McpServer
 
 | File | Role |
 |------|------|
-| `index.ts` | Express app setup, OAuth discovery/auth endpoints, Skybridge devtools — **do not modify** |
+| `index.ts` | Express app setup, local OAuth helper endpoints, Skybridge devtools — **do not modify** |
 | `middleware.ts` | MCP HTTP transport wiring — **do not modify** |
 | `env.ts` | Validated env vars via `@t3-oss/env-core` + zod |
 | `supabase.ts` | All DB operations (`fetchTasks`, `executeActions`) — **do not modify** |
 | `server.ts` | MCP tool definition, recommendation engine, neuroscience reasons, rewards |
 
-The MCP tool is registered as widget `"flowzen"` on a `McpServer` from `skybridge/server`. The app exposes OAuth discovery + token endpoints in `index.ts`. Tool handlers currently default `userId` to `"dev-user-demo"` when auth info is absent.
+The MCP tool is registered as widget `"flowzen"` on a `McpServer` from `skybridge/server`. Tool handlers currently default `userId` to `"dev-user-demo"` when auth info is absent.
 
 ### Frontend (`web/src/`)
 
