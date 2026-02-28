@@ -1,0 +1,238 @@
+{
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "C01",
+      "title": "Great mood in peak morning with critical deadline",
+      "currentTime": "2026-02-28 10:15",
+      "timeWindow": "Peak Window",
+      "cognitiveState": "peak cognitive",
+      "mood": "great",
+      "allowNull": false,
+      "excludedTaskIds": [],
+      "tasks": [
+        { "id": "t1", "title": "Finalize investor demo narrative", "priority": "high", "difficulty": "hard", "dueDate": "2026-03-01" },
+        { "id": "t2", "title": "Reply to inbox", "priority": "medium", "difficulty": "easy", "dueDate": null },
+        { "id": "t3", "title": "Clean up project folders", "priority": "low", "difficulty": "easy", "dueDate": null }
+      ],
+      "userInsights": {
+        "completionCount": 56,
+        "bestTimeWindows": ["peak_morning"],
+        "recentCompletions": ["Roadmap deck", "Sprint plan"]
+      }
+    },
+    {
+      "id": "C02",
+      "title": "Great mood but top task excluded",
+      "currentTime": "2026-02-28 09:40",
+      "timeWindow": "Morning Focus",
+      "cognitiveState": "rising energy",
+      "mood": "great",
+      "allowNull": false,
+      "excludedTaskIds": ["t1"],
+      "tasks": [
+        { "id": "t1", "title": "Write board memo", "priority": "high", "difficulty": "hard", "dueDate": "2026-03-02" },
+        { "id": "t2", "title": "Architect auth migration", "priority": "high", "difficulty": "hard", "dueDate": "2026-03-03" },
+        { "id": "t3", "title": "Polish landing copy", "priority": "medium", "difficulty": "medium", "dueDate": null }
+      ],
+      "userInsights": {
+        "completionCount": 34,
+        "bestTimeWindows": ["early_morning", "peak_morning"],
+        "recentCompletions": ["API schema", "Release checklist"]
+      }
+    },
+    {
+      "id": "C03",
+      "title": "Okay mood after lunch",
+      "currentTime": "2026-02-28 13:20",
+      "timeWindow": "Post-Lunch",
+      "cognitiveState": "post-lunch dip beginning",
+      "mood": "okay",
+      "allowNull": false,
+      "excludedTaskIds": [],
+      "tasks": [
+        { "id": "t1", "title": "Review analytics dashboard", "priority": "medium", "difficulty": "medium", "dueDate": "2026-03-02" },
+        { "id": "t2", "title": "Draft technical blog", "priority": "high", "difficulty": "hard", "dueDate": "2026-03-05" },
+        { "id": "t3", "title": "Update FAQ entries", "priority": "low", "difficulty": "easy", "dueDate": null }
+      ],
+      "userInsights": {
+        "completionCount": 18,
+        "bestTimeWindows": ["second_peak"],
+        "recentCompletions": ["Standup notes"]
+      }
+    },
+    {
+      "id": "C04",
+      "title": "Tired mood in afternoon trough",
+      "currentTime": "2026-02-28 14:25",
+      "timeWindow": "Afternoon Trough",
+      "cognitiveState": "natural fatigue trough",
+      "mood": "tired",
+      "allowNull": true,
+      "excludedTaskIds": [],
+      "tasks": [
+        { "id": "t1", "title": "Prepare quarterly strategy brief", "priority": "high", "difficulty": "hard", "dueDate": "2026-03-01" },
+        { "id": "t2", "title": "Tag and archive old docs", "priority": "low", "difficulty": "easy", "dueDate": null },
+        { "id": "t3", "title": "Schedule follow-up calls", "priority": "low", "difficulty": "easy", "dueDate": null }
+      ],
+      "userInsights": {
+        "completionCount": 61,
+        "bestTimeWindows": ["peak_morning"],
+        "recentCompletions": ["Sales sync"]
+      }
+    },
+    {
+      "id": "C05",
+      "title": "Tired mood at wind down",
+      "currentTime": "2026-02-28 19:10",
+      "timeWindow": "Wind Down",
+      "cognitiveState": "winding down",
+      "mood": "tired",
+      "allowNull": true,
+      "excludedTaskIds": [],
+      "tasks": [
+        { "id": "t1", "title": "Deep refactor payment pipeline", "priority": "high", "difficulty": "hard", "dueDate": "2026-03-04" },
+        { "id": "t2", "title": "Capture tomorrow priorities", "priority": "low", "difficulty": "easy", "dueDate": null }
+      ],
+      "userInsights": {
+        "completionCount": 72,
+        "bestTimeWindows": ["peak_morning", "second_peak"],
+        "recentCompletions": ["Demo rehearsal", "Client follow-up"]
+      }
+    },
+    {
+      "id": "C06",
+      "title": "Okay mood in second peak",
+      "currentTime": "2026-02-28 16:05",
+      "timeWindow": "Creative Peak",
+      "cognitiveState": "second energy peak",
+      "mood": "okay",
+      "allowNull": false,
+      "excludedTaskIds": [],
+      "tasks": [
+        { "id": "t1", "title": "Design onboarding experiment", "priority": "medium", "difficulty": "medium", "dueDate": "2026-03-03" },
+        { "id": "t2", "title": "Finalize legal contract", "priority": "high", "difficulty": "hard", "dueDate": "2026-03-01" },
+        { "id": "t3", "title": "Tidy desktop files", "priority": "low", "difficulty": "easy", "dueDate": null }
+      ],
+      "userInsights": {
+        "completionCount": 25,
+        "bestTimeWindows": ["second_peak"],
+        "recentCompletions": ["Mock interview prep"]
+      }
+    },
+    {
+      "id": "C07",
+      "title": "Great mood, no high priority available",
+      "currentTime": "2026-02-28 11:10",
+      "timeWindow": "Peak Window",
+      "cognitiveState": "peak cognitive",
+      "mood": "great",
+      "allowNull": false,
+      "excludedTaskIds": [],
+      "tasks": [
+        { "id": "t1", "title": "Create social media draft", "priority": "medium", "difficulty": "medium", "dueDate": "2026-03-03" },
+        { "id": "t2", "title": "Organize references", "priority": "low", "difficulty": "easy", "dueDate": null }
+      ],
+      "userInsights": {
+        "completionCount": 14,
+        "bestTimeWindows": ["peak_morning"],
+        "recentCompletions": ["Checklist cleanup"]
+      }
+    },
+    {
+      "id": "C08",
+      "title": "Okay mood with due-date pressure",
+      "currentTime": "2026-02-28 10:50",
+      "timeWindow": "Peak Window",
+      "cognitiveState": "peak cognitive",
+      "mood": "okay",
+      "allowNull": false,
+      "excludedTaskIds": [],
+      "tasks": [
+        { "id": "t1", "title": "Prepare contract redlines", "priority": "high", "difficulty": "hard", "dueDate": "2026-03-01" },
+        { "id": "t2", "title": "Review QA report", "priority": "medium", "difficulty": "medium", "dueDate": "2026-03-01" },
+        { "id": "t3", "title": "Reply to event invitation", "priority": "low", "difficulty": "easy", "dueDate": null }
+      ],
+      "userInsights": {
+        "completionCount": 39,
+        "bestTimeWindows": ["early_morning"],
+        "recentCompletions": ["Release notes"]
+      }
+    },
+    {
+      "id": "C09",
+      "title": "Tired mood and all tasks are hard",
+      "currentTime": "2026-02-28 15:00",
+      "timeWindow": "Afternoon Trough",
+      "cognitiveState": "natural fatigue trough",
+      "mood": "tired",
+      "allowNull": true,
+      "excludedTaskIds": [],
+      "tasks": [
+        { "id": "t1", "title": "Write architecture RFC", "priority": "high", "difficulty": "hard", "dueDate": "2026-03-02" },
+        { "id": "t2", "title": "Refactor caching layer", "priority": "medium", "difficulty": "hard", "dueDate": "2026-03-04" }
+      ],
+      "userInsights": {
+        "completionCount": 47,
+        "bestTimeWindows": ["peak_morning"],
+        "recentCompletions": ["Bug triage"]
+      }
+    },
+    {
+      "id": "C10",
+      "title": "Great mood with competing hard tasks",
+      "currentTime": "2026-02-28 09:25",
+      "timeWindow": "Morning Focus",
+      "cognitiveState": "rising energy",
+      "mood": "great",
+      "allowNull": false,
+      "excludedTaskIds": [],
+      "tasks": [
+        { "id": "t1", "title": "Ship checkout bugfix", "priority": "high", "difficulty": "hard", "dueDate": "2026-03-01" },
+        { "id": "t2", "title": "Prepare user interview protocol", "priority": "high", "difficulty": "hard", "dueDate": "2026-03-03" },
+        { "id": "t3", "title": "Draft hiring outreach", "priority": "medium", "difficulty": "medium", "dueDate": null }
+      ],
+      "userInsights": {
+        "completionCount": 90,
+        "bestTimeWindows": ["early_morning", "peak_morning"],
+        "recentCompletions": ["Sprint kickoff", "Stakeholder update"]
+      }
+    },
+    {
+      "id": "C11",
+      "title": "Okay mood with strong user pattern",
+      "currentTime": "2026-02-28 16:20",
+      "timeWindow": "Creative Peak",
+      "cognitiveState": "second energy peak",
+      "mood": "okay",
+      "allowNull": false,
+      "excludedTaskIds": [],
+      "tasks": [
+        { "id": "t1", "title": "Storyboard launch video", "priority": "medium", "difficulty": "medium", "dueDate": "2026-03-04" },
+        { "id": "t2", "title": "Audit vendor invoices", "priority": "high", "difficulty": "hard", "dueDate": "2026-03-01" },
+        { "id": "t3", "title": "Rename screenshot assets", "priority": "low", "difficulty": "easy", "dueDate": null }
+      ],
+      "userInsights": {
+        "completionCount": 64,
+        "bestTimeWindows": ["second_peak"],
+        "recentCompletions": ["Concept sketch", "Copy review"]
+      }
+    },
+    {
+      "id": "C12",
+      "title": "No active tasks",
+      "currentTime": "2026-02-28 12:05",
+      "timeWindow": "Post-Lunch",
+      "cognitiveState": "post-lunch dip beginning",
+      "mood": "okay",
+      "allowNull": true,
+      "excludedTaskIds": [],
+      "tasks": [],
+      "userInsights": {
+        "completionCount": 11,
+        "bestTimeWindows": ["peak_morning"],
+        "recentCompletions": ["Inbox zero"]
+      }
+    }
+  ]
+}

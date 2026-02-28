@@ -30,11 +30,15 @@ export const env = createEnv({
     CLERK_PUBLISHABLE_KEY: z.string().optional(),
     MCP_SERVER_URL: z.string().url().optional(),
     ANTHROPIC_API_KEY: z.string().optional(),
+    FLOWZEN_RECOMMENDER_MODE: z.enum(["auto", "rules", "sampling", "server_llm"]).optional(),
+    FLOWZEN_ENABLE_SERVER_LLM: z.enum(["true", "false"]).optional(),
   },
   runtimeEnv: {
     ...process.env,
     CLERK_PUBLISHABLE_KEY: clerkPublishableKey,
     MCP_SERVER_URL: process.env.MCP_SERVER_URL,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    FLOWZEN_RECOMMENDER_MODE: process.env.FLOWZEN_RECOMMENDER_MODE,
+    FLOWZEN_ENABLE_SERVER_LLM: process.env.FLOWZEN_ENABLE_SERVER_LLM,
   },
 });

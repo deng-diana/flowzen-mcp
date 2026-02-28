@@ -2,7 +2,14 @@ import { McpServer } from "skybridge/server";
 import { z } from "zod";
 import { env } from "./env.js";
 import { executeActions, supabase } from "./supabase.js";
-import { callClaudeForRecommendation } from "./llm.js";
+import {
+  callClaudeForRecommendation,
+  callClientSamplingForRecommendation,
+  clientSupportsSampling,
+  getRecommenderMode,
+  isServerLlmEnabled,
+  type LLMContext,
+} from "./llm.js";
 import { fetchUserInsights, logRecommendation, recordCompletion } from "./user-insights.js";
 
 const SERVER_URL = process.env.MCP_SERVER_URL ?? "http://localhost:3000";
@@ -456,24 +463,48 @@ const server = new McpServer(
     let reason = getReason(effectiveMood, timeCtx, recommendation);
     let reward = getReward(effectiveMood, timeCtx);
     let focusTips: string[] = [];
+    let engineUsed: "rules" | "sampling" | "server_llm" = "rules";
+    const recommenderMode = getRecommenderMode();
+    const samplingSupported = clientSupportsSampling(server.server);
+    const serverLlmEnabled = isServerLlmEnabled();
+    const hasActiveTasks = tasks.some((t) => !t.completed);
 
-    if (env.ANTHROPIC_API_KEY) {
+    if (hasActiveTasks) {
       const now = new Date();
-      const llmResult = await callClaudeForRecommendation({
+      const llmContext: LLMContext = {
         currentTime: `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`,
         timeWindow: timeCtx.label,
         cognitiveState: timeCtx.cognitiveState,
         mood: effectiveMood,
-        tasks: tasks.map((t) => ({
+        tasks: (tasks as Task[]).map((t) => ({
           id: t.id,
-          title: (t as Task).title,
-          priority: (t as Task).priority,
-          difficulty: (t as Task).difficulty,
-          dueDate: (t as Task).dueDate,
+          title: t.title,
+          priority: t.priority,
+          difficulty: t.difficulty,
+          dueDate: t.dueDate,
         })),
         userInsights,
         excludedTaskIds,
-      });
+      };
+
+      let llmResult = null;
+      if (recommenderMode === "sampling" || recommenderMode === "auto") {
+        llmResult = await callClientSamplingForRecommendation(server.server, llmContext);
+        if (llmResult) {
+          engineUsed = "sampling";
+        }
+      }
+
+      if (
+        !llmResult
+        && (recommenderMode === "server_llm" || (recommenderMode === "auto" && serverLlmEnabled))
+      ) {
+        llmResult = await callClaudeForRecommendation(llmContext);
+        if (llmResult) {
+          engineUsed = "server_llm";
+        }
+      }
+
       if (llmResult) {
         recommendation = llmResult.recommendedTaskId
           ? (tasks.find((t) => t.id === llmResult.recommendedTaskId) as Task ?? null)
@@ -483,6 +514,13 @@ const server = new McpServer(
         focusTips = llmResult.focusTips;
       }
     }
+
+    console.log("[flowzen] recommendation_engine", {
+      mode: recommenderMode,
+      engineUsed,
+      samplingSupported,
+      serverLlmEnabled,
+    });
 
     // Log recommendation (fire-and-forget)
     logRecommendation({
@@ -503,6 +541,12 @@ const server = new McpServer(
         reward,
         focusTips,
         timeContext: timeCtx.label,
+        recommendationMeta: {
+          mode: recommenderMode,
+          engineUsed,
+          samplingSupported,
+          serverLlmEnabled,
+        },
       },
       content: [
         {

@@ -9,7 +9,8 @@
     "build": "skybridge build",
     "start": "skybridge start",
     "deploy": "alpic deploy",
-    "probe:prod": "bash scripts/probe-prod.sh"
+    "probe:prod": "bash scripts/probe-prod.sh",
+    "eval:recommendations": "node scripts/eval-recommendations.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

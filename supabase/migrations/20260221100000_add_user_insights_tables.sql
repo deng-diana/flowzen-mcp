@@ -1,4 +1,4 @@
--- user_completion_events: 记录每次任务完成事件
+-- user_completion_events: records each task completion event
 CREATE TABLE user_completion_events (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id text NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE user_completion_events (
   was_recommended boolean DEFAULT false
 );
 
--- recommendation_log: 记录每次推荐及用户是否采纳
+-- recommendation_log: records each recommendation and whether the user accepted it
 CREATE TABLE recommendation_log (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id text NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE recommendation_log (
   accepted_at timestamptz
 );
 
--- user_preferences: 聚合用户习惯（最佳专注时间段、完成总数）
+-- user_preferences: aggregates user habits (best focus window, total completions)
 CREATE TABLE user_preferences (
   user_id text PRIMARY KEY,
   best_time_windows jsonb DEFAULT '[]',

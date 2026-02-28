@@ -8,15 +8,15 @@ Before writing code, first explore the project structure, then invoke the `mcp-a
 
 ## Deployment — IMPORTANT
 
-**git commit + push = 自动部署（热更新）**
+**git commit + push = automatic deployment (hot update)**
 
 ```bash
 git add <files>
 git commit -m "your message"
-git push origin main   # ← 这一步触发 Alpic CI/CD，自动 build + deploy
+git push origin main   # ← this triggers Alpic CI/CD: automatic build + deploy
 ```
 
-Push 到 `main` 后 1–2 分钟生效。**不需要手动运行 `pnpm deploy` 或 `alpic deploy`**。
+After pushing to `main`, changes go live in 1–2 minutes. **No need to run `pnpm deploy` or `alpic deploy` manually.**
 
 Production URL: `https://flowzen-mcp-dfdb5406.alpic.live/mcp`
 
