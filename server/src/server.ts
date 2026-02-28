@@ -12,8 +12,6 @@ import {
 } from "./llm.js";
 import { fetchUserInsights, logRecommendation, recordCompletion } from "./user-insights.js";
 
-const SERVER_URL = process.env.MCP_SERVER_URL ?? "http://localhost:3000";
-
 async function fetchTasksWithDifficulty(userId: string) {
   const { data, error } = await supabase
     .from("tasks")
@@ -273,6 +271,23 @@ const ActionSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
+function getRequestHeader(
+  headers: Record<string, string | string[] | undefined> | undefined,
+  name: string,
+): string | null {
+  if (!headers) return null;
+  const raw = headers[name.toLowerCase()];
+  if (typeof raw === "string") {
+    const value = raw.trim();
+    return value.length > 0 ? value : null;
+  }
+  if (Array.isArray(raw) && raw.length > 0) {
+    const value = String(raw[0] ?? "").trim();
+    return value.length > 0 ? value : null;
+  }
+  return null;
+}
+
 const server = new McpServer(
   { name: "flowzen", version: "1.0.0" },
   { capabilities: {} },
@@ -329,22 +344,13 @@ const server = new McpServer(
     },
   },
   async ({ actions, mood, excludedTaskIds, currentRecommendedId, acceptRecommendationId }, extra) => {
-    const userId = ((extra.authInfo?.extra as any)?.userId as string | undefined)
-      ?? "dev-user-demo";
-
-    if (!userId) {
-      return {
-        content: [
-          { type: "text", text: "Please sign in to use Flowzen." },
-        ],
-        isError: true,
-        _meta: {
-          "mcp/www_authenticate": [
-            `Bearer resource_metadata="${SERVER_URL}/.well-known/oauth-protected-resource/mcp"`,
-          ],
-        },
-      };
-    }
+    const authUserIdRaw = (extra.authInfo?.extra as { userId?: unknown } | undefined)?.userId;
+    const authUserId = typeof authUserIdRaw === "string" ? authUserIdRaw.trim() : "";
+    const sessionId = getRequestHeader(
+      extra.requestInfo?.headers as Record<string, string | string[] | undefined> | undefined,
+      "mcp-session-id",
+    );
+    const userId = authUserId || (sessionId ? `anon-${sessionId}` : "dev-user-demo");
 
     if (actions && actions.length > 0) {
       // add, rename, update_priority, update_difficulty handled directly (supabase.ts doesn't support them fully)
